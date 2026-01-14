@@ -1,0 +1,3219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>✨ Magic Workshop 魔法工坊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <!-- Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&family=Inter:wght@400;600&display=swap"
+    rel="stylesheet">
+  <!-- Libs -->
+  <script src="https://unpkg.com/piexifjs"></script>
+  <script src="https://unpkg.com/exifreader"></script>
+  <script src="https://unpkg.com/pako@2.1.0/dist/pako.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════════════════
+       ✨ KAWAIITOOLS INSPIRED DESIGN SYSTEM ✨
+       Modern glassmorphism with dynamic orb backgrounds
+    ═══════════════════════════════════════════════════════════════════════════ */
+    
+    :root {
+      /* ─── Light Theme (Rose/Pink) ─── */
+      --bg-main: #fef7f8;
+      --bg-card: rgba(255, 255, 255, 0.7);
+      --bg-card-hover: rgba(255, 255, 255, 0.85);
+      --bg-input: rgba(255, 255, 255, 0.8);
+      --bg-input-focus: rgba(255, 255, 255, 1);
+      --border-card: rgba(255, 255, 255, 0.6);
+      --border-input: #e2e8f0;
+      --border-focus: #f472b6;
+      
+      --text-primary: #1e1b4b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      
+      --accent-pink: #f472b6;
+      --accent-purple: #a855f7;
+      --accent-indigo: #6366f1;
+      --accent-teal: #14b8a6;
+      --accent-rose: #fb7185;
+      
+      --gradient-primary: linear-gradient(135deg, #f472b6, #a855f7);
+      --gradient-secondary: linear-gradient(135deg, #6366f1, #a855f7);
+      --gradient-obf: linear-gradient(135deg, #8b5cf6, #d946ef);
+      --gradient-save: linear-gradient(135deg, #f472b6, #fb7185);
+      --gradient-danger: linear-gradient(135deg, #ef4444, #f97316);
+      
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.1);
+      --shadow-glow: 0 0 30px rgba(244, 114, 182, 0.25);
+      --shadow-glow-purple: 0 0 30px rgba(168, 85, 247, 0.25);
+      
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+      --radius-full: 9999px;
+      
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* Orb Colors */
+      --orb-1: rgba(244, 114, 182, 0.4);
+      --orb-2: rgba(99, 102, 241, 0.35);
+      --orb-3: rgba(168, 85, 247, 0.25);
+    }
+
+    /* ─── Dark Theme (Slate/Indigo) ─── */
+    [data-theme="dark"] {
+      --bg-main: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.8);
+      --bg-card-hover: rgba(51, 65, 85, 0.9);
+      --bg-input: rgba(15, 23, 42, 0.6);
+      --bg-input-focus: rgba(30, 41, 59, 0.9);
+      --border-card: rgba(100, 116, 139, 0.3);
+      --border-input: rgba(100, 116, 139, 0.4);
+      --border-focus: #f472b6;
+      
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 40px rgba(244, 114, 182, 0.2);
+      --shadow-glow-purple: 0 0 40px rgba(168, 85, 247, 0.2);
+      
+      --orb-1: rgba(244, 114, 182, 0.15);
+      --orb-2: rgba(99, 102, 241, 0.2);
+      --orb-3: rgba(168, 85, 247, 0.15);
+    }
+
+    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Quicksand', 'Inter', sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      padding: 24px;
+      overflow-x: hidden;
+      transition: background 0.6s ease, color 0.3s ease;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       🌈 ANIMATED ORB BACKGROUND
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .orb-container {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.7;
+      will-change: transform;
+    }
+    
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: var(--orb-1);
+      top: -150px; right: -100px;
+      animation: orbFloat1 20s ease-in-out infinite;
+    }
+    
+    .orb-2 {
+      width: 450px; height: 450px;
+      background: var(--orb-2);
+      bottom: -100px; left: -80px;
+      animation: orbFloat2 25s ease-in-out infinite;
+    }
+    
+    .orb-3 {
+      width: 600px; height: 600px;
+      background: var(--orb-3);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: orbFloat3 18s ease-in-out infinite;
+    }
+    
+    @keyframes orbFloat1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(-40px, 30px) scale(1.1); }
+      66% { transform: translate(20px, -20px) scale(0.95); }
+    }
+    
+    @keyframes orbFloat2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, -40px) scale(1.15); }
+    }
+    
+    @keyframes orbFloat3 {
+      0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+      50% { transform: translate(-50%, -50%) scale(1.1) rotate(45deg); }
+    }
+
+    @keyframes popIn { 
+      0% { opacity: 0; transform: translateY(20px) scale(0.95); } 
+      100% { opacity: 1; transform: translateY(0) scale(1); } 
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .app-wrap {
+      max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;
+      animation: popIn 0.6s var(--ease-spring); min-height: 90vh;
+      position: relative; z-index: 1;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       🎀 HEADER / NAVIGATION
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center; 
+      padding: 16px 28px;
+      background: var(--bg-card); 
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-card); 
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s var(--ease-smooth);
+    }
+    .app-header:hover { 
+      box-shadow: var(--shadow-lg); 
+      transform: translateY(-2px);
+      border-color: var(--accent-pink);
+    }
+    
+    .brand h1 { 
+      margin: 0; font-size: 22px; font-weight: 800; 
+      display: flex; align-items: center; gap: 12px;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .brand .version-badge {
+      font-size: 10px; 
+      background: var(--gradient-primary); 
+      color: #fff; 
+      padding: 4px 10px; 
+      border-radius: var(--radius-full);
+      -webkit-text-fill-color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .header-controls { display: flex; gap: 12px; }
+    .icon-btn, .lang-select {
+      background: var(--bg-input); 
+      border: 2px solid var(--border-input); 
+      border-radius: var(--radius-full); 
+      padding: 10px 18px;
+      cursor: pointer; 
+      color: var(--text-secondary); 
+      font-weight: 700; 
+      font-family: inherit; 
+      font-size: 14px;
+      transition: all 0.3s var(--ease-spring);
+    }
+    .icon-btn:hover, .lang-select:hover { 
+      background: var(--bg-card-hover); 
+      transform: translateY(-3px) scale(1.02); 
+      color: var(--accent-pink);
+      border-color: var(--accent-pink);
+      box-shadow: var(--shadow-glow);
+    }
+    .icon-btn { padding: 10px 14px; font-size: 18px; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       📦 LAYOUT GRID
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .main-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
+    @media(min-width: 1000px) { .main-grid { grid-template-columns: 400px 1fr; align-items: start; } }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       🪟 GLASSMORPHISM CARDS
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .glass-card {
+      background: var(--bg-card); 
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-xl); 
+      padding: 28px; 
+      box-shadow: var(--shadow-md);
+      display: flex; flex-direction: column; gap: 20px;
+      transition: all 0.4s var(--ease-smooth);
+    }
+    .glass-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(244, 114, 182, 0.3);
+    }
+
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center; 
+      border-bottom: 2px dashed var(--border-input);
+      padding-bottom: 16px; margin-bottom: 8px; flex-wrap: wrap; gap: 12px;
+    }
+    .card-title { 
+      font-size: 18px; font-weight: 800; 
+      display: flex; align-items: center; gap: 10px;
+      color: var(--accent-pink);
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 4px; height: 24px;
+      background: var(--gradient-primary);
+      border-radius: var(--radius-full);
+    }
+    .card-sub { 
+      font-size: 10px; 
+      color: var(--text-muted); 
+      font-weight: 700; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: var(--bg-input);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       ✏️ INPUTS & TEXTAREAS
+    ═══════════════════════════════════════════════════════════════════════════ */
+    input, textarea, select {
+      background: var(--bg-input); 
+      border: 2px solid var(--border-input); 
+      border-radius: var(--radius-md); 
+      padding: 14px 18px;
+      width: 100%; 
+      color: var(--text-primary); 
+      font-family: inherit; 
+      font-size: 14px; 
+      font-weight: 600; 
+      transition: all 0.3s var(--ease-smooth);
+    }
+    input:hover, textarea:hover, select:hover {
+      border-color: var(--accent-pink);
+      transform: translateY(-2px);
+    }
+    input:focus, textarea:focus, select:focus {
+      background: var(--bg-input-focus); 
+      border-color: var(--accent-pink); 
+      box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.15), var(--shadow-glow);
+      transform: translateY(-2px) scale(1.01);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* DateTime Picker - Hide text, show only calendar icon */
+    input[type="datetime-local"].date-picker-icon {
+      width: 24px !important;
+      height: 24px !important;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      cursor: pointer;
+      color: transparent !important;
+      position: relative;
+    }
+    input[type="datetime-local"].date-picker-icon::-webkit-calendar-picker-indicator {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+    input[type="datetime-local"].date-picker-icon::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       📜 RAW DATA / JSON VIEWER
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .raw-section { margin-top: 20px; border-top: 2px dashed var(--border-input); padding-top: 20px; }
+    .raw-toggle-btn {
+      width: 100%; padding: 14px 18px; 
+      background: var(--bg-input); 
+      border-radius: var(--radius-md); 
+      border: 2px solid transparent;
+      color: var(--text-secondary); 
+      font-weight: 700; 
+      cursor: pointer; 
+      transition: all 0.3s var(--ease-smooth); 
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .raw-toggle-btn:hover { 
+      color: var(--accent-purple); 
+      background: var(--bg-card-hover);
+      border-color: var(--accent-purple);
+      transform: translateY(-2px);
+    }
+    .raw-container {
+      display: none; margin-top: 12px; 
+      background: linear-gradient(135deg, #1e1b4b, #312e81); 
+      border-radius: var(--radius-lg); 
+      color: #e2e8f0;
+      padding: 20px; 
+      font-family: 'Fira Code', 'Consolas', monospace; 
+      font-size: 12px; 
+      overflow-x: auto;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .raw-container.show { display: block; animation: popIn 0.3s ease; }
+
+    /* JSON Syntax Highlighting */
+    .j-key { color: #fcd34d; } 
+    .j-str { color: #4ade80; } 
+    .j-num { color: #c4b5fd; } 
+    .j-bool { color: #f472b6; } 
+    .j-null { color: #94a3b8; }
+
+    /* Character Items Advanced */
+    .char-item-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .btn-toggle-uc { 
+      font-size: 11px; 
+      cursor: pointer; 
+      border: 2px solid var(--border-input); 
+      background: transparent; 
+      padding: 5px 14px; 
+      border-radius: var(--radius-full); 
+      color: var(--text-muted); 
+      font-weight: 700;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s var(--ease-spring); 
+    }
+    .btn-toggle-uc::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-primary);
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.4s var(--ease-spring);
+      z-index: -1;
+    }
+    .btn-toggle-uc:hover { 
+      border-color: var(--accent-pink); 
+      color: var(--accent-pink);
+      transform: translateY(-2px) scale(1.05);
+    }
+    .btn-toggle-uc.active { 
+      border-color: transparent; 
+      color: white;
+      transform: scale(1.05);
+      box-shadow: var(--shadow-glow);
+    }
+    .btn-toggle-uc.active::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .char-coords input { width: 60px; padding: 6px; text-align: center; font-size: 12px; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       📤 DROP ZONE
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .drop-zone {
+      background: linear-gradient(135deg, rgba(244, 114, 182, 0.05), rgba(168, 85, 247, 0.05));
+      border: 3px dashed var(--border-input); 
+      border-radius: var(--radius-lg);
+      min-height: 220px; 
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; 
+      transition: all 0.4s var(--ease-spring); 
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .drop-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(244, 114, 182, 0.1) 50%, transparent 70%);
+      background-size: 200% 200%;
+      animation: shimmer 3s ease-in-out infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .drop-zone:hover::before { opacity: 1; }
+    .drop-zone:hover { 
+      transform: scale(1.02); 
+      border-color: var(--accent-pink);
+      background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(168, 85, 247, 0.1));
+      box-shadow: var(--shadow-glow);
+    }
+    .drop-zone .drop-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .drop-zone strong { 
+      font-size: 16px; 
+      color: var(--text-primary); 
+      margin-bottom: 4px;
+    }
+    
+    .preview-box {
+      background: linear-gradient(135deg, var(--bg-input), var(--bg-card));
+      border-radius: var(--radius-lg); 
+      min-height: 280px;
+      display: flex; align-items: center; justify-content: center; 
+      overflow: hidden; 
+      border: 2px solid var(--border-card);
+      position: relative;
+    }
+    .preview-box img, .preview-box canvas { 
+      max-width: 95%; max-height: 400px; 
+      border-radius: var(--radius-md); 
+      box-shadow: var(--shadow-md); 
+    }
+    
+    .file-info { 
+      text-align: center; font-size: 13px; 
+      color: var(--text-secondary); 
+      margin-top: 12px; 
+      min-height: 24px;
+      font-weight: 600;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       🏷️ TABS - Sliding Indicator Animation
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .mode-tabs { 
+      background: var(--bg-input); 
+      padding: 6px; 
+      border-radius: var(--radius-full); 
+      display: inline-flex; 
+      gap: 4px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    
+    /* Sliding indicator background */
+    .tab-slider {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      height: calc(100% - 12px);
+      background: var(--gradient-primary);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-glow);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .tab-slider.obf {
+      background: var(--gradient-obf);
+      box-shadow: var(--shadow-glow-purple);
+    }
+    
+    .mode-tab {
+      padding: 12px 20px; 
+      border-radius: var(--radius-full); 
+      border: none; 
+      background: transparent;
+      color: var(--text-muted); 
+      font-weight: 700; 
+      font-size: 13px;
+      cursor: pointer; 
+      transition: color 0.3s ease, transform 0.2s ease;
+      min-width: 90px; 
+      white-space: nowrap;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .mode-tab:hover:not(.active) { 
+      color: var(--accent-pink);
+      transform: scale(1.02);
+    }
+    
+    /* Active state - just change text color, slider does the background */
+    .mode-tab.active { 
+      color: white; 
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    /* Module Containers with enhanced animation */
+    .form-container { 
+      display: none; 
+      animation: slideUp 0.5s var(--ease-spring); 
+    }
+    .form-container.active { display: block; }
+    
+    @keyframes slideUp {
+      0% { opacity: 0; transform: translateY(15px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Auto Obfuscation Segment Control (Animated) */
+    .seg-container {
+      position: relative;
+    }
+    .seg-container input { display: none; }
+    
+    .seg-labels {
+      display: flex;
+      background: white; /* Match reference white bg */
+      border-radius: var(--radius-full);
+      padding: 6px; /* slightly larger padding */
+      position: relative;
+      user-select: none;
+      box-shadow: var(--shadow-sm); /* Add shadow depth */
+    }
+    
+    .seg-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px 14px;
+      font-size: 13px; /* Larger text */
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      z-index: 2;
+      transition: all 0.4s var(--ease-spring); /* Bouncy text color transition */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: var(--radius-full);
+    }
+    
+    .seg-item:hover {
+      color: var(--accent-pink);
+      background: rgba(244, 114, 182, 0.05); /* Subtle hover effect */
+    }
+    
+    .seg-glider {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      height: calc(100% - 12px);
+      width: calc((100% - 12px) / 3);
+      background: var(--gradient-primary);
+      border-radius: var(--radius-full);
+      z-index: 1;
+      transition: transform 0.5s var(--ease-spring); /* More bouncy animation */
+      box-shadow: var(--shadow-glow-purple); /* Glow effect */
+    }
+    
+    /* Logic to move glider */
+    #segOff:checked ~ .seg-labels .seg-glider { transform: translateX(0); }
+    #segEnc:checked ~ .seg-labels .seg-glider { transform: translateX(100%); }
+    #segDec:checked ~ .seg-labels .seg-glider { transform: translateX(200%); }
+    
+    /* Color change */
+    #segOff:checked ~ .seg-labels label[for="segOff"],
+    #segEnc:checked ~ .seg-labels label[for="segEnc"],
+    #segDec:checked ~ .seg-labels label[for="segDec"] {
+      color: #fff;
+      transform: scale(1.05); /* Slight pop */
+    }
+    
+    /* Disable hover bg on active item */
+    #segOff:checked ~ .seg-labels label[for="segOff"]:hover,
+    #segEnc:checked ~ .seg-labels label[for="segEnc"]:hover,
+    #segDec:checked ~ .seg-labels label[for="segDec"]:hover {
+      background: transparent;
+      color: #fff;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════
+       📊 INFO PANEL STYLES
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .info-section {
+      background: var(--bg-input);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-input);
+      margin-bottom: 8px;
+    }
+    .info-section:last-of-type { margin-bottom: 0; }
+    .info-section-title {
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-primary);
+      background: linear-gradient(135deg, rgba(244, 114, 182, 0.05), rgba(168, 85, 247, 0.05));
+      border-bottom: 1px solid var(--border-input);
+    }
+    .info-content {
+      padding: 0;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border-input);
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row:hover { background: rgba(244, 114, 182, 0.03); }
+    .info-row-key {
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    .info-row-value {
+      color: var(--text-secondary);
+      text-align: right;
+      word-break: break-all;
+      max-width: 70%;
+    }
+    .info-row-value.copyable {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .info-row-value.copyable:hover { color: var(--accent-pink); }
+    .info-prompt-block {
+      padding: 6px 10px;
+      font-size: 11px;
+      line-height: 1.2;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-input);
+    }
+    .info-prompt-block:last-child { border-bottom: none; }
+    .info-prompt-label {
+      font-weight: 700;
+      color: var(--accent-pink);
+      margin-bottom: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .info-empty {
+      padding: 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .info-pre {
+      margin: 0;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      background: transparent;
+    }
+    
+    /* JSON Tree Viewer - Compact */
+    .json-tree {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.15;
+      padding: 4px;
+    }
+    .json-tree ul {
+      list-style: none;
+      padding-left: 12px;
+      margin: 0;
+    }
+    .json-tree > ul { padding-left: 0; }
+    .json-tree li {
+      position: relative;
+      margin: 0;
+      padding: 0;
+    }
+    .json-tree .json-key {
+      color: #f472b6;
+      font-weight: 600;
+    }
+    .json-tree .json-string { color: #4ade80; }
+    .json-tree .json-number { color: #c4b5fd; }
+    .json-tree .json-boolean { color: #60a5fa; }
+    .json-tree .json-null { color: #94a3b8; }
+    .json-tree .json-toggle {
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      display: inline-block;
+      width: 16px;
+      color: var(--accent-purple);
+      font-weight: bold;
+    }
+    .json-tree .json-toggle:hover { color: var(--accent-pink); }
+    .json-tree .json-bracket { color: var(--text-muted); }
+    .json-tree .json-collapsed > ul { display: none; }
+    .json-tree .json-collapsed > .json-toggle::before { content: '▶ '; }
+    .json-tree .json-expanded > .json-toggle::before { content: '▼ '; }
+    .json-tree .json-leaf > .json-toggle { visibility: hidden; }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════
+       🔘 BUTTONS
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .btn {
+      border: none; 
+      border-radius: var(--radius-full); 
+      padding: 16px 24px; 
+      font-size: 14px; 
+      font-weight: 700;
+      cursor: pointer; 
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all 0.3s var(--ease-spring); 
+      text-transform: uppercase; 
+      letter-spacing: 0.8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    .btn:hover::before { transform: translateX(100%); }
+    .btn:hover:not(:disabled) { transform: translateY(-4px) scale(1.02); filter: brightness(1.1); }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.7); }
+    
+    .btn-primary { 
+      background: var(--gradient-save); 
+      color: white; 
+      box-shadow: 0 8px 25px rgba(244, 114, 182, 0.35);
+    }
+    .btn-obf { 
+      background: var(--gradient-obf); 
+      color: white; 
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.35);
+    }
+    .btn-ghost { 
+      background: transparent; 
+      border: 2px solid var(--border-input); 
+      color: var(--text-secondary); 
+    }
+    .btn-ghost:hover { 
+      border-color: var(--accent-pink); 
+      color: var(--accent-pink);
+      background: rgba(244, 114, 182, 0.05);
+    }
+    .btn-danger {
+      background: transparent;
+      border: 2px solid #ef4444;
+      color: #ef4444;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Grid Utils */
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { margin-bottom: 16px; }
+    .field label { 
+      font-size: 10px; 
+      color: var(--text-muted); 
+      font-weight: 800; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-left: 4px; 
+      margin-bottom: 8px; 
+      display: block; 
+    }
+
+    /* Character Items (NAI) */
+    .char-item { 
+      background: var(--bg-card-hover); 
+      border: 2px solid var(--border-input); 
+      border-radius: var(--radius-lg); 
+      padding: 16px; 
+      margin-bottom: 12px;
+      transition: all 0.3s;
+    }
+    .char-item:hover { border-color: var(--accent-pink); }
+    .btn-add-char { 
+      width: 100%; 
+      border: 2px dashed var(--accent-pink); 
+      background: rgba(244, 114, 182, 0.05); 
+      color: var(--accent-pink); 
+      padding: 14px; 
+      border-radius: var(--radius-lg); 
+      cursor: pointer; 
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.3s var(--ease-spring);
+    }
+    .btn-add-char:hover { 
+      background: var(--accent-pink); 
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    /* Footer */
+    .app-footer { 
+      text-align: center; 
+      opacity: 0.6; 
+      font-size: 13px; 
+      padding-top: 40px; 
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════
+       🔔 TOAST NOTIFICATIONS
+    ═══════════════════════════════════════════════════════════════════════════ */
+    .toast {
+      background: var(--bg-card); 
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-full); 
+      padding: 14px 28px; 
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-card); 
+      color: var(--text-primary); 
+      font-weight: 700; 
+      display: flex; align-items: center; gap: 12px;
+      position: fixed; top: 30px; left: 50%; 
+      transform: translateX(-50%) translateY(-120px); 
+      transition: all 0.5s var(--ease-spring); 
+      opacity: 0; 
+      z-index: 9999;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* Obfuscation specific */
+    .obf-status { 
+      text-align: center; margin-top: 12px; 
+      font-weight: 700; 
+      color: var(--accent-purple); 
+      min-height: 24px;
+      font-size: 14px;
+    }
+    .password-wrapper { position: relative; }
+    .password-lock-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+  </style>
+</head>
+
+<body>
+  <!-- 🌈 Dynamic Orb Background -->
+  <div class="orb-container">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app-wrap">
+    
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand">
+        <h1>
+          <span>✨</span> 
+          <span data-i18n="appTitle">Magic Workshop</span>
+          <span class="version-badge">V2.0</span>
+        </h1>
+      </div>
+      <div class="header-controls">
+        <select class="lang-select" id="langSelect" title="Language" onchange="changeLanguage(this.value)">
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </select>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="main-grid">
+      
+      <!-- LEFT PANEL: SOURCE IMAGE -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div class="card-title" data-i18n="cardLeftTitle">Source</div>
+          <div class="card-sub" data-i18n="cardLeftSub">DRAG & DROP</div>
+        </div>
+
+        <label class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+          <div class="drop-text" style="position:relative; z-index:1;">
+            <span class="drop-icon">📤</span>
+            <strong data-i18n="dropTitle">Drop File Here</strong>
+            <span data-i18n="dropSub" style="font-size: 13px; color: var(--text-muted); margin-top:4px; display:block;">PNG / JPG / WebP</span>
+          </div>
+        </label>
+
+        <div class="preview-box">
+          <img id="preview" alt="Preview" style="display:none;" />
+          <canvas id="workCanvas" style="display:none;"></canvas>
+          <div id="previewPlaceholder" style="color:var(--text-muted); font-size:14px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+            <span style="font-size:32px;">🖼️</span>
+            <span data-i18n="previewEmpty">No image selected</span>
+          </div>
+        </div>
+
+        <div class="file-info">
+          <div id="fileInfoText"></div>
+          <div id="fileTypeBadge" style="display:none; font-size:10px; background: var(--gradient-primary); color:#fff; padding:4px 12px; border-radius:var(--radius-full); margin-top:6px; font-weight:700;"></div>
+        </div>
+
+        <!-- Reload Button (Hidden by default) -->
+        <button id="btnReloadObf" class="btn btn-primary" onclick="reloadFromCanvas()" style="display:none; margin-top:10px; width:100%;">
+          <span data-i18n="btnReload">🔄 Use Obfuscated Result</span>
+        </button>
+      </section>
+
+      <!-- RIGHT PANEL: TOOLBOX -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title" data-i18n="cardRightTitle">Toolbox</div>
+            <div class="card-sub" data-i18n="cardRightSub">SELECT SPELL</div>
+          </div>
+          <!-- TABS with sliding indicator -->
+          <div class="mode-tabs" id="modeTabs">
+            <div class="tab-slider" id="tabSlider"></div>
+            <button class="mode-tab active" onclick="switchTab('meta')" data-i18n="tabMeta">✨ Meta</button>
+            <button class="mode-tab" onclick="switchTab('info')" data-i18n="tabInfo">📋 Info</button>
+            <button class="mode-tab" onclick="switchTab('exif')" data-i18n="tabExif">📍 GPS</button>
+            <button class="mode-tab" data-mode="obf" onclick="switchTab('obf')" data-i18n="tabObf">🔒 Lock</button>
+          </div>
+        </div>
+
+        <!-- FORM: METADATA -->
+        <div id="formMeta" class="form-container active">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="field">
+              <label data-i18n="fieldTitle">Title</label>
+              <input id="fieldTitle" type="text" placeholder="Image Title" data-i18n-ph="phTitle" />
+            </div>
+            <div class="field">
+              <div style="display:flex; justify-content:space-between;">
+                <label data-i18n="fieldPrompt">Prompt</label>
+                <button id="btnToggleActual" onclick="toggleActualPrompt()" style="font-size:10px; padding:2px 6px; border:1px solid var(--accent); background:none; color:var(--accent); border-radius:4px; cursor:pointer; display:none;" data-i18n="btnActualPrompt">Original</button>
+              </div>
+              <textarea id="fieldPrompt" rows="4" placeholder="Masterpiece, best quality..." data-i18n-ph="phPrompt"></textarea>
+            </div>
+
+            <div class="field" style="background:rgba(255,255,255,0.4); padding: 10px; border-radius: 15px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <label data-i18n="charTitle">Characters (NAI)</label>
+              </div>
+              <div id="charList"></div>
+              <button id="btnAddChar" class="btn-add-char" data-i18n="btnAddChar">＋ Add Chara</button>
+            </div>
+
+            <div class="field">
+              <label data-i18n="fieldNegative">Negative Prompt</label>
+              <textarea id="fieldNegative" placeholder="low quality..." data-i18n-ph="phNegative" style="min-height: 60px;"></textarea>
+            </div>
+
+            <div class="grid-3">
+              <div class="field"><label>Steps</label><input id="fieldSteps" type="text" placeholder="28" /></div>
+              <div class="field"><label>CFG</label><input id="fieldCfg" type="text" placeholder="7.0" /></div>
+              <div class="field"><label>Seed</label><input id="fieldSeed" type="text" /></div>
+            </div>
+            <div class="grid-3">
+              <div class="field"><label>Sampler</label><input id="fieldNoise" type="text" placeholder="native" /></div>
+              <div class="field"><label>Soft</label><input id="fieldSoftware" type="text" placeholder="NovelAI" /></div>
+              <div class="field"><label>Source</label><input id="fieldSource" type="text" placeholder="SD..." /></div>
+            </div>
+            <div class="field">
+              <label data-i18n="fieldComment">Comment / Note</label>
+              <input id="fieldComment" type="text" placeholder="Extra notes" data-i18n-ph="phComment" />
+            </div>
+            <input id="fieldNSamples" type="hidden" />
+
+            <!-- Raw Data Section -->
+            <div class="raw-section">
+              <button class="raw-toggle-btn" onclick="toggleRawData()">
+                <span data-i18n="rawTitle">📜 View Raw Json</span>
+                <span id="rawArrow">&#x25BC;</span>
+              </button>
+              <div class="raw-container" id="rawContainer">
+                <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                  <button id="btnRawEdit" onclick="toggleRawEdit()" style="background:#444; color:#fff; border:none; padding:4px 10px; border-radius:5px; cursor:pointer;">Edit</button>
+                  <button id="btnRawSave" onclick="saveRawData()" style="display:none; background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:5px; cursor:pointer; margin-left:5px;">Save</button>
+                </div>
+                <div id="treeView"></div>
+                <textarea id="rawEditor" style="width:100%; height:300px; background:transparent; color:#fff; border:none; display:none;"></textarea>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+              <button id="btnApplyMeta" class="btn btn-primary" disabled>
+                <span data-i18n="btnSaveMeta">✨ Save Metadata</span>
+              </button>
+              <button id="btnClearMeta" class="btn btn-ghost" disabled>
+                <span data-i18n="btnClearMeta">🧹 Clear AI Info</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM: EXIF -->
+        <div id="formExif" class="form-container">
+           <div style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- GPS Section -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);"><span style="margin-right:4px">📍</span><span data-i18n="gpsTitle">GPS</span></label>
+              <div class="grid-3">
+                <div class="field"><label>Lat</label><input id="exifLat" type="number" step="0.0001" placeholder="35.6" /></div>
+                <div class="field"><label>Lon</label><input id="exifLong" type="number" step="0.0001" placeholder="139.6" /></div>
+                <div class="field"><label>Alt</label><input id="exifAlt" type="number" step="0.1" placeholder="10m" /></div>
+              </div>
+            </div>
+            
+            <!-- Camera Info -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifCamera">📷 Camera Info</label>
+              <div class="grid-2">
+                <div class="field"><label>Make</label><input id="exifMake" type="text" placeholder="Canon" /></div>
+                <div class="field"><label>Model</label><input id="exifModel" type="text" placeholder="EOS R5" /></div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>LensModel</label><input id="exifLensModel" type="text" placeholder="24-70mm" /></div>
+                <div class="field"><label>LensMake</label><input id="exifLensMake" type="text" placeholder="Canon" /></div>
+              </div>
+              <div class="field"><label>Software</label><input id="exifSoftware" type="text" /></div>
+            </div>
+            
+            <!-- DateTime -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifTime">📅 Time</label>
+              <div class="grid-2" style="margin-top:8px;">
+                <div class="field">
+                  <label style="display:flex; justify-content:space-between; align-items:center;">DateTime <input type="datetime-local" class="date-picker-icon" onchange="applyDateFromPicker(this, 'exifDateTime')"/></label>
+                  <input id="exifDateTime" type="text" placeholder="2024:01:01 12:00:00" style="padding:10px 12px; font-size:12px;" />
+                </div>
+                <div class="field">
+                  <label style="display:flex; justify-content:space-between; align-items:center;">DateTimeOriginal <input type="datetime-local" class="date-picker-icon" onchange="applyDateFromPicker(this, 'exifDateTimeOriginal')"/></label>
+                  <input id="exifDateTimeOriginal" type="text" placeholder="Shot Time" data-i18n-ph="phShotTime" style="padding:10px 12px; font-size:12px;" />
+                </div>
+              </div>
+              <div class="field">
+                <label style="display:flex; justify-content:space-between; align-items:center;">DateTimeDigitized <input type="datetime-local" class="date-picker-icon" onchange="applyDateFromPicker(this, 'exifDateTimeDigitized')"/></label>
+                <input id="exifDateTimeDigitized" type="text" placeholder="Digitized Time" data-i18n-ph="phDigitizedTime" style="padding:10px 12px; font-size:12px;" />
+              </div>
+            </div>
+            
+            <!-- Exposure Settings -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifExposure">⚡ Exposure</label>
+              <div class="grid-3">
+                <div class="field"><label>Exposure</label><input id="exifExposure" type="text" placeholder="1/100" /></div>
+                <div class="field"><label>F-Number</label><input id="exifFNumber" type="number" step="0.1" placeholder="2.8" /></div>
+                <div class="field"><label>ISO</label><input id="exifISO" type="number" placeholder="100" /></div>
+              </div>
+              <div class="grid-3">
+                <div class="field"><label>Focal</label><input id="exifFocal" type="number" placeholder="50" /></div>
+                <div class="field"><label>Focal35mm</label><input id="exifFocal35" type="number" placeholder="50" /></div>
+                <div class="field"><label>MaxAperture</label><input id="exifMaxAperture" type="number" step="0.1" placeholder="1.4" /></div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>ExposureBias</label><input id="exifExposureBias" type="text" placeholder="0 EV" /></div>
+                <div class="field"><label>ExposureProgram</label>
+                  <select id="exifExposureProgram">
+                    <option value="">--</option>
+                    <option value="1">Manual</option>
+                    <option value="2">Auto</option>
+                    <option value="3">Aperture Priority</option>
+                    <option value="4">Shutter Priority</option>
+                    <option value="5">Creative</option>
+                    <option value="6">Action</option>
+                    <option value="7">Portrait</option>
+                    <option value="8">Landscape</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>MeteringMode</label>
+                  <select id="exifMeteringMode">
+                    <option value="">--</option>
+                    <option value="1">Average</option>
+                    <option value="2">Center-weighted</option>
+                    <option value="3">Spot</option>
+                    <option value="4">Multi-spot</option>
+                    <option value="5">Pattern</option>
+                    <option value="6">Partial</option>
+                  </select>
+                </div>
+                <div class="field"><label>Flash</label>
+                  <select id="exifFlash">
+                    <option value="">--</option>
+                    <option value="0">No Flash</option>
+                    <option value="1">Fired</option>
+                    <option value="5">Fired, No Return</option>
+                    <option value="7">Fired, Return</option>
+                    <option value="16">Off</option>
+                    <option value="24">Auto, No Fire</option>
+                    <option value="25">Auto, Fired</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Image Settings -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifImgSettings">🎨 Image Settings</label>
+              <div class="grid-3">
+                <div class="field"><label>WhiteBalance</label>
+                  <select id="exifWhiteBalance">
+                    <option value="">--</option>
+                    <option value="0">Auto</option>
+                    <option value="1">Manual</option>
+                  </select>
+                </div>
+                <div class="field"><label>Orientation</label>
+                  <select id="exifOrientation">
+                    <option value="">--</option>
+                    <option value="1">Normal</option>
+                    <option value="3">180°</option>
+                    <option value="6">90° CW</option>
+                    <option value="8">90° CCW</option>
+                  </select>
+                </div>
+                <div class="field"><label>ColorSpace</label>
+                  <select id="exifColorSpace">
+                    <option value="">--</option>
+                    <option value="1">sRGB</option>
+                    <option value="2">Adobe RGB</option>
+                    <option value="65535">Uncalibrated</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-3">
+                <div class="field"><label>Sharpness</label>
+                  <select id="exifSharpness">
+                    <option value="">--</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Soft</option>
+                    <option value="2">Hard</option>
+                  </select>
+                </div>
+                <div class="field"><label>Saturation</label>
+                  <select id="exifSaturation">
+                    <option value="">--</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Low</option>
+                    <option value="2">High</option>
+                  </select>
+                </div>
+                <div class="field"><label>Contrast</label>
+                  <select id="exifContrast">
+                    <option value="">--</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Low</option>
+                    <option value="2">High</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>SceneCaptureType</label>
+                  <select id="exifSceneType">
+                    <option value="">--</option>
+                    <option value="0">Standard</option>
+                    <option value="1">Landscape</option>
+                    <option value="2">Portrait</option>
+                    <option value="3">Night Scene</option>
+                  </select>
+                </div>
+                <div class="field"><label>SubjectDistance</label><input id="exifSubjectDistance" type="text" placeholder="m" /></div>
+              </div>
+            </div>
+            
+            <!-- Author Info -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifAuthor">👤 Author</label>
+              <div class="grid-2">
+                <div class="field"><label>Artist</label><input id="exifArtist" type="text" placeholder="Artist" data-i18n-ph="phArtist" /></div>
+                <div class="field"><label>Copyright</label><input id="exifCopyright" type="text" placeholder="© 2024" data-i18n-ph="phCopyright" /></div>
+              </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifDesc">📝 Description</label>
+              <div class="field"><label>ImageDescription</label><input id="exifDescription" type="text" placeholder="Description" data-i18n-ph="phImageDesc" /></div>
+              <div class="field"><label>UserComment</label><textarea id="exifUserComment" style="min-height:60px;"></textarea></div>
+            </div>
+            
+             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+              <button id="btnApplyExif" class="btn btn-primary" disabled><span data-i18n="btnSaveExif">📸 Save EXIF</span></button>
+              <button id="btnClearExif" class="btn btn-ghost" disabled><span data-i18n="btnClearExif">🛡️ Clean EXIF</span></button>
+              <button id="btnClearAll" class="btn btn-danger" disabled><span data-i18n="btnNuke">🧨 Nuke ALL Info</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM: OBFUSCATION -->
+        <div id="formObf" class="form-container">
+          <div style="text-align:center; margin-bottom:20px; color:var(--obf-accent);">
+            <p style="font-size:13px; font-weight:700;" data-i18n="obfDesc">Gilbert Curve Pixel Scrambling</p>
+          </div>
+          
+          <!-- Auto Process Mode - Animated Segment Control -->
+          <div style="margin-bottom:16px;">
+            <div style="font-size:10px; font-weight:700; color:var(--text-muted); text-align:center; margin-bottom:6px;" data-i18n="obfAutoProcess">🚀 Auto Process</div>
+            
+            <div class="seg-container">
+              <input type="radio" name="autoObf" id="segOff" value="off" checked>
+              <input type="radio" name="autoObf" id="segEnc" value="encrypt">
+              <input type="radio" name="autoObf" id="segDec" value="decrypt">
+              
+              <div class="seg-labels">
+                <label for="segOff" class="seg-item">
+                  <span class="seg-icon">⭕</span> <span data-i18n="segOff">Off</span>
+                </label>
+                <label for="segEnc" class="seg-item">
+                  <span class="seg-icon">🔒</span> <span data-i18n="segEnc">Scramble</span>
+                </label>
+                <label for="segDec" class="seg-item">
+                  <span class="seg-icon">🔓</span> <span data-i18n="segDec">Restore</span>
+                </label>
+                <div class="seg-glider"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label data-i18n="obfPassword">Magic Password (Optional)</label>
+            <div class="password-wrapper">
+              <input id="obfPass" type="password" placeholder="***" />
+              <span class="password-lock-icon">🔒</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" data-i18n="obfNote">Same password needed to restore!</div>
+          </div>
+
+          <div class="grid-2">
+             <button id="btnEncrypt" class="btn btn-obf" disabled onclick="runObfuscation(true)">
+               <span>🔒 <span data-i18n="btnEncrypt">Scramble</span></span>
+             </button>
+             <button id="btnDecrypt" class="btn btn-obf" disabled onclick="runObfuscation(false)" style="filter: hue-rotate(40deg);">
+               <span>🔓 <span data-i18n="btnDecrypt">Restore</span></span>
+             </button>
+          </div>
+
+          <div class="obf-status" id="obfStatus"></div>
+
+          <div style="margin-top:20px; border-top:2px dashed var(--border-input); padding-top:20px;">
+            <button id="btnSaveObf" class="btn btn-ghost" style="width:100%;" disabled onclick="saveObfuscated()">
+              <span data-i18n="btnSaveObf">💾 Save Result Image</span>
+            </button>
+          </div>
+          
+          <!-- Recent Deobfuscated History -->
+          <div style="margin-top:20px; border-top:2px dashed var(--border-input); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span style="font-weight:700; font-size:12px; color:var(--accent-purple);">📜 最近解混淆记录</span>
+              <button onclick="clearObfHistory()" style="font-size:10px; background:none; border:1px solid var(--border-input); border-radius:var(--radius-full); padding:4px 10px; cursor:pointer; color:var(--text-muted);">清空</button>
+            </div>
+            <div id="obfHistory" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap:8px; max-height:150px; overflow-y:auto;">
+              <div style="text-align:center; color:var(--text-muted); font-size:11px; padding:20px 0; grid-column: 1/-1;">暂无记录</div>
+            </div>
+          </div>
+          </div>
+
+
+        <!-- FORM: INFO (Complete Inspector) -->
+        <div id="formInfo" class="form-container">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            
+            <!-- Info Header -->
+            <div style="text-align:center; padding:12px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border-radius: var(--radius-lg);">
+              <p style="font-size:14px; font-weight:700; color: var(--accent-purple);" data-i18n="infoDesc">📊 Complete Image Inspector</p>
+              <p style="font-size:11px; color: var(--text-muted); margin-top:4px;">Based on <a href="https://github.com/Akegarasu/stable-diffusion-inspector" target="_blank" rel="noopener" style="color: var(--accent-pink); text-decoration:underline;">stable-diffusion-inspector</a> by @Akegarasu | 秋葉aaaki</p>
+            </div>
+            
+            <!-- File Info Section -->
+            <div class="info-section" id="infoFileSection">
+              <div class="info-section-title" data-i18n="infoFileTitle">📁 File Info</div>
+              <div id="infoFileContent" class="info-content">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+            
+            <!-- Generation Info Section -->
+            <div class="info-section" id="infoGenSection">
+              <div class="info-section-title" data-i18n="infoGenTitle">🎨 Generation Info</div>
+              <div id="infoGenContent" class="info-content">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+            
+            <!-- Full Parameters Section -->
+            <div class="info-section" id="infoFullSection">
+              <div class="info-section-title" data-i18n="infoFullTitle">📜 Full Parameters</div>
+              <div id="infoFullContent" class="info-content" style="max-height: 300px; overflow-y: auto;">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+            
+            <!-- EXIF Section -->
+            <div class="info-section" id="infoExifSection">
+              <div class="info-section-title" data-i18n="infoExifTitle">📷 EXIF Data</div>
+              <div id="infoExifContent" class="info-content" style="max-height: 250px; overflow-y: auto;">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+            
+            <!-- Copy All Button -->
+            <button id="btnCopyAll" class="btn btn-ghost" style="width:100%;" disabled onclick="copyAllInfo()">
+              <span data-i18n="btnCopyAll">📋 Copy All Info</span>
+            </button>
+            
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <footer class="app-footer">
+      Magic Workshop V2.0 (Kawaii Edition) · Antigravity AI
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"><span id="toastIcon">✨</span> <span id="toastMsg">Message</span></div>
+
+  <!-- MAIN LOGIC -->
+  <script>
+    /* --- CONSTANTS & STATE --- */
+    const MAGIC = 'PWD';
+    let curLang = 'zh-CN';
+    let currentFile = null;
+    let fileBuffer = null; // ArrayBuffer of current file
+    let fileFormat = ''; // 'png' or 'jpeg'
+    // Metadata states
+    let metaObj = {}; // parsed metadata object
+    let isSD = false, isComfy = false;
+    let originalSegments = []; // for png/jpeg chunks preservation
+    // Obfuscation states
+    let obfCanvas = document.getElementById('workCanvas');
+    let obfCtx = obfCanvas.getContext('2d');
+    let isObfuscated = false;
+
+        /* --- I18N --- */
+    const i18n = {
+      "zh-CN": {
+        appTitle: "魔法工坊",
+        cardLeftTitle: "源文件",
+        cardLeftSub: "拖放上传",
+        dropTitle: "将文件拖到这里",
+        dropSub: "PNG / JPG / WebP",
+        previewEmpty: "暂无图片",
+        cardRightTitle: "工具箱",
+        cardRightSub: "选择魔法",
+        tabMeta: "✨ 元数据修改",
+        tabInfo: "📋 法术解析",
+        tabExif: "📷 EXIF修改",
+        tabObf: "🔒 混淆",
+        fieldTitle: "标题",
+        fieldPrompt: "正面提示词",
+        charTitle: "角色标签",
+        btnAddChar: "＋ 添加角色",
+        fieldNegative: "负面提示词",
+        phTitle: "给它起个可爱的名字...",
+        phPrompt: "masterpiece, best quality, 1girl...",
+        phNegative: "lowres, bad anatomy...",
+        fieldComment: "备注",
+        phComment: "有什么秘密笔记？",
+        rawTitle: "📜 查看原始 JSON",
+        btnSaveMeta: "✨ 保存数据",
+        btnClearMeta: "🧹 清除 AI 数据",
+        gpsTitle: "地理位置",
+        btnSaveExif: "📸 保存 EXIF",
+        btnClearExif: "🛡️ 清除 EXIF",
+        btnActualPrompt: "🔮 真实提示词",
+        btnNuke: "🧨 清除所有",
+        obfDesc: "Gilbert 曲线像素混淆",
+        obfPassword: "魔法密码（可选）",
+        obfNote: "还原时需要相同密码",
+        btnEncrypt: "加密",
+        btnDecrypt: "解密",
+        btnSaveObf: "💾 保存结果",
+        btnReload: "🔄 使用处理结果",
+        toastMetaFound: "发现元数据！✨",
+        toastNoMeta: "未发现 AI 数据...",
+        toastSaved: "保存成功！💖",
+        toastExifSaved: "EXIF 更新成功！📸",
+        toastCleaned: "清理完毕！🧹",
+        toastJPEGFound: "检测到 JPEG 📸",
+        toastObfDone: "混淆完成！💫",
+        toastRestored: "已还原！✅",
+        toastErr: "出错了 ❌",
+        charLabel: "角色",
+        charTogglePos: "正面",
+        charToggleNeg: "负面",
+        charRemove: "×",
+        charCenter: "中心",
+        // Info panel
+        infoDesc: "📊 完整图片信息",
+        infoFileTitle: "📁 文件信息",
+        infoGenTitle: "🎨 生成信息",
+        infoFullTitle: "📜 完整参数",
+        infoExifTitle: "📷 EXIF 数据",
+        infoEmpty: "上传图片后显示信息",
+        btnCopyAll: "📋 复制所有信息",
+        toastCopied: "已复制到剪贴板！📋",
+        infoNoData: "😭 无法读取 Metadata",
+        // New Additions
+        exifCamera: "📷 相机信息",
+        exifTime: "📅 时间",
+        exifExposure: "⚡ 曝光参数",
+        exifImgSettings: "🎨 图像设置",
+        exifAuthor: "👤 作者信息",
+        exifDesc: "📝 描述",
+        phShotTime: "拍摄时间",
+        phDigitizedTime: "数字化时间",
+        phArtist: "摄影师",
+        phCopyright: "© 2024",
+        phImageDesc: "图片描述",
+        obfAutoProcess: "🚀 上传自动处理",
+        segOff: "关闭",
+        segEnc: "混淆",
+        segDec: "解密"
+      },
+      "en": {
+        appTitle: "Magic Workshop",
+        cardLeftTitle: "Source",
+        cardLeftSub: "DRAG & DROP",
+        dropTitle: "Drop File Here",
+        dropSub: "PNG / JPG / WebP",
+        previewEmpty: "No image selected",
+        cardRightTitle: "Toolbox",
+        cardRightSub: "SELECT SPELL",
+        tabMeta: "✨ Meta",
+        tabInfo: "📋 Info",
+        tabExif: "📍 GPS",
+        tabObf: "🔒 Lock",
+        fieldTitle: "Title",
+        fieldPrompt: "Positive Prompt",
+        charTitle: "Characters",
+        btnAddChar: "＋ Add Character",
+        fieldNegative: "Negative Prompt",
+        phTitle: "Give it a cute name...",
+        phPrompt: "masterpiece, best quality, 1girl...",
+        phNegative: "lowres, bad anatomy...",
+        fieldComment: "Comment",
+        phComment: "Any secret notes?",
+        rawTitle: "📜 View Raw JSON",
+        btnSaveMeta: "✨ Save Data",
+        btnClearMeta: "🧹 Clear AI Data",
+        gpsTitle: "Geolocation",
+        btnSaveExif: "📸 Save EXIF",
+        btnClearExif: "🛡️ Clean EXIF",
+        btnActualPrompt: "🔮 True Prompt",
+        btnNuke: "🧨 Nuke All",
+        obfDesc: "Gilbert Curve Scrambling",
+        obfPassword: "Secret Password (Optional)",
+        obfNote: "Same password needed to restore",
+        btnEncrypt: "Scramble",
+        btnDecrypt: "Restore",
+        btnSaveObf: "💾 Download",
+        btnReload: "🔄 Use Result",
+        toastMetaFound: "Metadata Found! ✨",
+        toastNoMeta: "No AI Data found...",
+        toastSaved: "Saved! 💖",
+        toastExifSaved: "EXIF Updated! 📸",
+        toastCleaned: "All Cleaned! 🧹",
+        toastJPEGFound: "JPEG Detected 📸",
+        toastObfDone: "Scrambled! 💫",
+        toastRestored: "Restored! ✅",
+        toastErr: "Error ❌",
+        charLabel: "Chara",
+        charTogglePos: "Pos",
+        charToggleNeg: "Neg",
+        charRemove: "x",
+        charCenter: "Center",
+        // Info panel
+        infoDesc: "📊 Complete Image Inspector",
+        infoFileTitle: "📁 File Info",
+        infoGenTitle: "🎨 Generation Info",
+        infoFullTitle: "📜 Full Parameters",
+        infoExifTitle: "📷 EXIF Data",
+        infoEmpty: "Upload an image to view info",
+        btnCopyAll: "📋 Copy All Info",
+        toastCopied: "Copied to clipboard! 📋",
+        infoNoData: "😭 Cannot read Metadata",
+        // New Additions
+        exifCamera: "📷 Camera Info",
+        exifTime: "📅 Date Time",
+        exifExposure: "⚡ Exposure Settings",
+        exifImgSettings: "🎨 Image Settings",
+        exifAuthor: "👤 Author Info",
+        exifDesc: "📝 Description",
+        phShotTime: "Original Shot Time",
+        phDigitizedTime: "Digitized Time",
+        phArtist: "Photographer",
+        phCopyright: "© 2024",
+        phImageDesc: "Image Description",
+        obfAutoProcess: "🚀 Auto Process on Upload",
+        segOff: "Off",
+        segEnc: "Scramble",
+        segDec: "Restore"
+      }
+    };
+
+    /* --- UI HELPERS --- */
+    
+    // Clear/Nuke Logic
+    function clearAllData() {
+        if (!currentFile) return;
+        showToast("Cleaning...", "normal");
+        
+        // 1. Clear Metadata Objects
+        pngCommentObj = null;
+        originalData = {};
+        actualData = {};
+        
+        // 2. Clear UI Inputs
+        ['fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg', 'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('charList').innerHTML = '';
+        document.getElementById('treeView').innerHTML = '';
+        document.getElementById('rawEditor').value = '';
+        
+        // 3. Clear Exif Inputs
+        ['exifMake', 'exifModel', 'exifSoftware', 'exifDateTime', 'exifExposure', 'exifFNumber', 'exifISO', 'exifFocal', 'exifUserComment', 'exifLat', 'exifLong', 'exifAlt'].forEach(id => document.getElementById(id).value = '');
+        
+        // 4. Strip Metadata from Image (Visual wipe)
+        // We redraw the image to canvas to strip text chunks, then re-blob
+        const img = new Image();
+        img.onload = () => {
+             const cvs = document.getElementById('workCanvas');
+             const ctx = cvs.getContext('2d');
+             cvs.width = img.width; cvs.height = img.height;
+             ctx.clearRect(0,0,cvs.width,cvs.height);
+             ctx.drawImage(img,0,0);
+             
+             // Update internal buffer to stripped version
+             const mime = fileFormat === 'png' ? 'image/png' : 'image/jpeg';
+             cvs.toBlob(async b => {
+                 fileBuffer = await b.arrayBuffer();
+                 // We don't auto-download here, just reset state
+                 showToast(getT('toastCleaned'), "success");
+             }, mime);
+        };
+        img.src = URL.createObjectURL(new Blob([fileBuffer]));
+    }
+    function clearMetaOnly() {
+        if (!fileBuffer) return;
+        showToast("Cleaning...", "normal");
+        pngCommentObj = null;
+        originalData = {};
+        actualData = {};
+        isSD = false;
+        isComfy = false;
+        hasActual = false;
+        isShowingActual = false;
+        document.getElementById('btnToggleActual').style.display = 'none';
+        ['fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg', 'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('charList').innerHTML = '';
+        document.getElementById('treeView').innerHTML = '';
+        document.getElementById('rawEditor').value = '';
+        updateRawView();
+        updateRawView();
+        if (fileFormat === 'png') {
+            const cleaned = insertPngChunks(fileBuffer, { "parameters": "", "Comment": "", "Title": "", "Description": "", "Software": "", "Source": "" });
+            downloadBlob(cleaned, "meta_clean.png");
+            showToast(getT('toastCleaned'), "success");
+            return;
+        }
+        if (fileFormat === 'jpeg') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const binStr = e.target.result;
+                try {
+                    const piexifObj = piexif.load(binStr);
+                    piexifObj["Exif"] = piexifObj["Exif"] || {};
+                    delete piexifObj["Exif"][piexif.ExifIFD.UserComment];
+                    const newBytes = piexif.dump(piexifObj);
+                    const newBin = piexif.insert(newBytes, binStr);
+                    const arr = new Uint8Array(newBin.length);
+                    for (let i = 0; i < newBin.length; i++) arr[i] = newBin.charCodeAt(i);
+                    downloadBlob(new Blob([arr], {type: "image/jpeg"}), "meta_clean.jpg");
+                    showToast(getT('toastCleaned'), "success");
+                } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
+            };
+            reader.readAsBinaryString(new Blob([fileBuffer]));
+        }
+    }
+    function clearExif() {
+        if (fileFormat !== 'jpeg') { showToast("Only JPEG supports EXIF", "normal"); return; }
+        ['exifMake', 'exifModel', 'exifSoftware', 'exifDateTime', 'exifExposure', 'exifFNumber', 'exifISO', 'exifFocal', 'exifUserComment', 'exifLat', 'exifLong', 'exifAlt'].forEach(id => document.getElementById(id).value = '');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const binStr = e.target.result;
+            try {
+                const emptyExif = { "0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": null };
+                const newBytes = piexif.dump(emptyExif);
+                const newBin = piexif.insert(newBytes, binStr);
+                const arr = new Uint8Array(newBin.length);
+                for (let i = 0; i < newBin.length; i++) arr[i] = newBin.charCodeAt(i);
+                downloadBlob(new Blob([arr], {type: "image/jpeg"}), "exif_clean.jpg");
+                showToast(getT('toastCleaned'), "success");
+            } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
+        };
+        reader.readAsBinaryString(new Blob([fileBuffer]));
+    }
+    
+    document.getElementById('btnClearAll').addEventListener('click', clearAllData);
+    function getT(k) { return (i18n[curLang] || i18n['en'])[k] || k; }
+    function changeLanguage(val) { curLang = val; updateTexts(); }
+    function updateTexts() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = getT(el.getAttribute('data-i18n'));
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        el.placeholder = getT(el.getAttribute('data-i18n-ph'));
+      });
+      refreshDynamicUI();
+    }
+    function refreshDynamicUI() {
+      document.querySelectorAll('.char-item').forEach(item => {
+        const label = item.querySelector('.char-item-header span');
+        if (label) label.textContent = getT('charLabel');
+        const removeBtn = item.querySelector('.btn-remove-char');
+        if (removeBtn) removeBtn.textContent = getT('charRemove');
+        const coordLabel = item.querySelector('.char-coords span');
+        if (coordLabel) coordLabel.textContent = getT('charCenter');
+        const toggleBtn = item.querySelector('.btn-toggle-uc');
+        if (toggleBtn) toggleBtn.textContent = toggleBtn.classList.contains('active') ? getT('charTogglePos') : getT('charToggleNeg');
+      });
+    }
+    function pickFirst(...vals) { for (const v of vals) { if (v !== undefined && v !== null && v !== '') return v; } return ''; }
+    function setFieldVal(el, val) {
+      const node = (typeof el === 'string') ? document.getElementById(el) : el;
+      if (!node) return;
+      node.value = (val === undefined || val === null) ? '' : val;
+    }
+    function dmsRationalToDeg(dms, ref) {
+      if (!dms || dms.length < 3) return 0;
+      const d = dms[0][0] / dms[0][1];
+      const m = dms[1][0] / dms[1][1];
+      const s = dms[2][0] / dms[2][1];
+      let deg = d + m / 60 + s / 3600;
+      if (ref === 'S' || ref === 'W') deg = -deg;
+      return deg;
+    }
+    function degToDmsRational(deg) {
+      const absDeg = Math.abs(deg);
+      const d = Math.floor(absDeg);
+      const m = Math.floor((absDeg - d) * 60);
+      const s = (absDeg - d - m / 60) * 3600;
+      return [[d, 1], [m, 1], [Math.round(s * 10000), 10000]];
+    }
+    function parseRational(val, scale = 1000000) {
+      if (!val) return null;
+      const v = String(val).trim();
+      if (!v) return null;
+      if (v.includes('/')) {
+        const [a, b] = v.split('/');
+        const num = parseFloat(a);
+        const den = parseFloat(b);
+        if (!isNaN(num) && !isNaN(den) && den !== 0) return [num, den];
+      }
+      const f = parseFloat(v);
+      if (!isNaN(f)) return [Math.round(f * scale), scale];
+      return null;
+    }
+    function showToast(msg, type='normal') {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    function toggleTheme() {
+      const isLight = document.documentElement.getAttribute('data-theme') !== 'dark';
+      document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+      document.getElementById('themeIcon').textContent = isLight ? '☀️' : '🌙';
+    }
+    function switchTab(mode) {
+      const tabs = document.querySelectorAll('.mode-tab');
+      const slider = document.getElementById('tabSlider');
+      
+      // Remove active from all tabs and forms
+      tabs.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+      
+      let activeTab = null;
+      let isObf = false;
+      
+      if (mode === 'meta') { 
+        activeTab = tabs[0];
+        document.getElementById('formMeta').classList.add('active'); 
+      }
+      if (mode === 'info') { 
+        activeTab = tabs[1];
+        document.getElementById('formInfo').classList.add('active'); 
+      }
+      if (mode === 'exif') { 
+        activeTab = tabs[2];
+        document.getElementById('formExif').classList.add('active'); 
+      }
+      if (mode === 'obf') { 
+        activeTab = tabs[3];
+        document.getElementById('formObf').classList.add('active');
+        isObf = true;
+      }
+      
+      if (activeTab) {
+        activeTab.classList.add('active');
+        
+        // Update slider position
+        if (slider) {
+          const tabsContainer = document.getElementById('modeTabs');
+          const containerRect = tabsContainer.getBoundingClientRect();
+          const tabRect = activeTab.getBoundingClientRect();
+          
+          slider.style.width = tabRect.width + 'px';
+          slider.style.left = (tabRect.left - containerRect.left) + 'px';
+          
+          // Toggle obfuscation style
+          if (isObf) {
+            slider.classList.add('obf');
+          } else {
+            slider.classList.remove('obf');
+          }
+        }
+      }
+    }
+    
+    // Initialize slider position on page load
+    function initTabSlider() {
+      const activeTab = document.querySelector('.mode-tab.active');
+      const slider = document.getElementById('tabSlider');
+      const tabsContainer = document.getElementById('modeTabs');
+      
+      if (activeTab && slider && tabsContainer) {
+        const containerRect = tabsContainer.getBoundingClientRect();
+        const tabRect = activeTab.getBoundingClientRect();
+        slider.style.width = tabRect.width + 'px';
+        slider.style.left = (tabRect.left - containerRect.left) + 'px';
+      }
+    }
+    // Run after DOM is ready
+    setTimeout(initTabSlider, 100);
+    window.addEventListener('resize', initTabSlider);
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       📊 INFO PANEL - COMPLETE IMAGE INSPECTOR
+       Based on https://github.com/Akegarasu/stable-diffusion-inspector
+       Made with ❤️ by @Akegarasu | 秋葉aaaki 
+    ═══════════════════════════════════════════════════════════════════════════ */
+    
+    let infoItems = []; // Array of {key, value} for display
+    let infoExifItems = []; // EXIF data
+    let infoJsonData = null; // For JSON viewer
+    let infoMetaType = 'UNKNOWN'; // SD-WEBUI, NOVELAI, COMFYUI, etc.
+    
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    // ===== DataReader for Stealth Watermark =====
+    class DataReader {
+      constructor(data) {
+        this.data = data;
+        this.index = 0;
+      }
+      readBit() { return this.data[this.index++]; }
+      readNBits(n) {
+        let bits = [];
+        for (let i = 0; i < n; i++) bits.push(this.readBit());
+        return bits;
+      }
+      readByte() {
+        let byte = 0;
+        for (let i = 0; i < 8; i++) byte |= this.readBit() << (7 - i);
+        return byte;
+      }
+      readNBytes(n) {
+        let bytes = [];
+        for (let i = 0; i < n; i++) bytes.push(this.readByte());
+        return bytes;
+      }
+      readInt32() {
+        let bytes = this.readNBytes(4);
+        return new DataView(new Uint8Array(bytes).buffer).getInt32(0, false);
+      }
+    }
+
+    // ===== Stealth Exif Reader (NAI Hidden Watermark) =====
+    async function getStealthExif(imgSrc) {
+      try {
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: true });
+        let img = new Image();
+        img.src = imgSrc;
+        await img.decode();
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        let imageData = ctx.getImageData(0, 0, img.width, img.height);
+        let lowestData = [];
+        for (let x = 0; x < img.width; x++) {
+          for (let y = 0; y < img.height; y++) {
+            let index = (y * img.width + x) * 4;
+            let a = imageData.data[index + 3];
+            lowestData.push(a & 1);
+          }
+        }
+        const magic = "stealth_pngcomp";
+        const reader = new DataReader(lowestData);
+        const readMagic = reader.readNBytes(magic.length);
+        const magicString = String.fromCharCode.apply(null, readMagic);
+        if (magic === magicString) {
+          const dataLength = reader.readInt32();
+          const gzipData = reader.readNBytes(dataLength / 8);
+          const data = pako.ungzip(new Uint8Array(gzipData));
+          const jsonString = new TextDecoder().decode(new Uint8Array(data));
+          const json = JSON.parse(jsonString);
+          return json;
+        }
+      } catch (e) { console.log("Stealth exif error:", e); }
+      return null;
+    }
+
+    // ===== Extract PNG tEXt/iTXt Chunks =====
+    function extractPngChunks(buffer) {
+      const bytes = new Uint8Array(buffer);
+      const chunks = [];
+      let pos = 8; // Skip PNG signature
+      while (pos < bytes.length) {
+        const length = (bytes[pos] << 24) | (bytes[pos + 1] << 16) | (bytes[pos + 2] << 8) | bytes[pos + 3];
+        const type = String.fromCharCode(bytes[pos + 4], bytes[pos + 5], bytes[pos + 6], bytes[pos + 7]);
+        const data = bytes.slice(pos + 8, pos + 8 + length);
+        chunks.push({ name: type, data: data });
+        pos += 12 + length; // 4 (length) + 4 (type) + length + 4 (CRC)
+        if (type === 'IEND') break;
+      }
+      return chunks;
+    }
+
+    function decodePngTextChunk(data) {
+      // Find null separator
+      let nullPos = 0;
+      while (nullPos < data.length && data[nullPos] !== 0) nullPos++;
+      const keyword = new TextDecoder().decode(data.slice(0, nullPos));
+      const text = new TextDecoder().decode(data.slice(nullPos + 1));
+      return { keyword, text };
+    }
+
+    function decodePngITXtChunk(data) {
+      // iTXt: keyword\0compressionFlag\0compressionMethod\0languageTag\0translatedKeyword\0text
+      let dataFiltered = Array.from(data).filter(x => x !== 0);
+      let header = new TextDecoder().decode(new Uint8Array(dataFiltered.slice(0, 11)));
+      if (header === "Description") {
+        let txt = new TextDecoder().decode(new Uint8Array(dataFiltered.slice(11)));
+        return { keyword: "Description", text: txt };
+      } else {
+        let txt = new TextDecoder().decode(new Uint8Array(dataFiltered));
+        return { keyword: "iTXt", text: txt };
+      }
+    }
+
+    // ===== Handle SD WebUI parameters format =====
+    function handleWebUiTag(paramText) {
+      let [prompts, otherParas] = paramText.split("Steps: ");
+      let promptSplit = prompts.split("Negative prompt: ");
+      let negativePrompt = promptSplit.length > 1 ? promptSplit[1] : "";
+      return [
+        { keyword: "提示词 / Prompt", text: promptSplit[0].trim() },
+        { keyword: "负面提示词 / Negative", text: negativePrompt.trim() },
+        { keyword: "其他参数 / Parameters", text: otherParas ? "Steps: " + otherParas : "" }
+      ];
+    }
+
+    // ===== Main Info Panel Populate Function =====
+    async function populateInfoPanel(file, metaObjHint, rawChunksHint) {
+      infoItems = [];
+      infoExifItems = [];
+      infoJsonData = null;
+      infoMetaType = 'UNKNOWN';
+      
+      // === 1. File Info ===
+      infoItems.push({ key: '文件名 / Filename', value: file.name });
+      infoItems.push({ key: '文件大小 / Size', value: formatBytes(file.size) });
+      
+      // Get dimensions from preview
+      const preview = document.getElementById('preview');
+      if (preview && preview.naturalWidth) {
+        infoItems.push({ key: '图片尺寸 / Dimensions', value: `${preview.naturalWidth} × ${preview.naturalHeight}` });
+      }
+      
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      
+      // === 2. Read EXIF using ExifReader ===
+      try {
+        if (typeof ExifReader !== 'undefined') {
+          const exifData = await ExifReader.load(file);
+          for (const [key, val] of Object.entries(exifData)) {
+            if (key !== 'MakerNote' && key !== 'UserComment' && val.description !== undefined) {
+              infoExifItems.push({ key: key, value: val.description });
+            }
+          }
+        }
+      } catch (e) { console.log("EXIF read error:", e); }
+      
+      // === 3. Extract Metadata based on format ===
+      let parsedItems = [];
+      let foundMeta = false;
+      
+      if (fileFormat === 'png') {
+        // Extract PNG chunks
+        try {
+          const chunks = extractPngChunks(buffer);
+          const textChunks = chunks
+            .filter(c => c.name === 'tEXt' || c.name === 'iTXt')
+            .map(c => {
+              if (c.name === 'iTXt') return decodePngITXtChunk(c.data);
+              else return decodePngTextChunk(c.data);
+            });
+          
+          if (textChunks.length === 0) {
+            // Try stealth watermark (NAI)
+            const stealthData = await getStealthExif(preview.src);
+            if (stealthData) {
+              infoMetaType = 'NOVELAI (Stealth)';
+              infoJsonData = stealthData;
+              for (const [k, v] of Object.entries(stealthData)) {
+                parsedItems.push({ keyword: k, text: typeof v === 'object' ? JSON.stringify(v) : String(v) });
+              }
+              foundMeta = true;
+            }
+          } else if (textChunks.length === 1 && textChunks[0].keyword.toLowerCase() === 'parameters') {
+            // SD WebUI format
+            infoMetaType = 'SD-WEBUI';
+            parsedItems = handleWebUiTag(textChunks[0].text);
+            parsedItems.push({ keyword: '完整生成信息 / Full', text: textChunks[0].text });
+            foundMeta = true;
+          } else {
+            // Multiple chunks (NAI or other)
+            infoMetaType = 'NOVELAI';
+            for (const chunk of textChunks) {
+              parsedItems.push({ keyword: chunk.keyword, text: chunk.text });
+              // Try to parse as JSON for Comment
+              if (chunk.keyword === 'Comment') {
+                try {
+                  infoJsonData = JSON.parse(chunk.text);
+                } catch (e) {}
+              }
+            }
+            foundMeta = true;
+          }
+        } catch (e) { console.log("PNG chunk error:", e); }
+        
+      } else if (fileFormat === 'jpeg') {
+        // JPEG: Read UserComment from EXIF
+        try {
+          if (typeof ExifReader !== 'undefined') {
+            const exifData = await ExifReader.load(file);
+            if (exifData.UserComment && exifData.UserComment.value) {
+              let userComment = String.fromCodePoint(...exifData.UserComment.value).replace(/\x00/g, '').slice(7);
+              if (userComment) {
+                infoMetaType = 'SD-WEBUI (JPEG)';
+                parsedItems = handleWebUiTag(userComment);
+                parsedItems.push({ keyword: '完整生成信息 / Full', text: userComment });
+                foundMeta = true;
+              }
+            }
+          }
+        } catch (e) { console.log("JPEG EXIF error:", e); }
+        
+        // Also try stealth if not found
+        if (!foundMeta) {
+          const stealthData = await getStealthExif(preview.src);
+          if (stealthData) {
+            infoMetaType = 'NOVELAI (Stealth)';
+            infoJsonData = stealthData;
+            for (const [k, v] of Object.entries(stealthData)) {
+              parsedItems.push({ keyword: k, text: typeof v === 'object' ? JSON.stringify(v) : String(v) });
+            }
+            foundMeta = true;
+          }
+        }
+      } else if (file.type === 'image/webp' || file.type === 'image/avif') {
+        // WebP/AVIF: Use ExifReader
+        try {
+          if (typeof ExifReader !== 'undefined') {
+            const exifData = await ExifReader.load(file);
+            if (exifData.UserComment && exifData.UserComment.value) {
+              let userComment = String.fromCodePoint(...exifData.UserComment.value).replace(/\x00/g, '').slice(7);
+              if (userComment) {
+                infoMetaType = 'WebP/AVIF';
+                parsedItems = handleWebUiTag(userComment);
+                parsedItems.push({ keyword: '完整生成信息', text: userComment });
+                foundMeta = true;
+              }
+            }
+          }
+        } catch (e) { console.log("WebP EXIF error:", e); }
+      }
+      
+      // === 4. Add parsed items to infoItems ===
+      if (foundMeta) {
+        infoItems.push({ key: '元数据类型 / Type', value: infoMetaType });
+        for (const item of parsedItems) {
+          infoItems.push({ key: item.keyword, value: item.text });
+        }
+      } else {
+        infoItems.push({ key: '提示 / Notice', value: getT('infoNoData') });
+      }
+      
+      // Render
+      renderInfoPanel();
+      document.getElementById('btnCopyAll').disabled = false;
+    }
+    
+    // ===== Render Info Panel =====
+    function renderInfoPanel() {
+      // === File Info Section ===
+      const fileEl = document.getElementById('infoFileContent');
+      // Only show basic file info (first 4 items typically: filename, size, dimensions, type)
+      const fileItems = infoItems.slice(0, 4);
+      fileEl.innerHTML = fileItems.map(item => `
+        <div class="info-row">
+          <span class="info-row-key">${escapeHtml(item.key)}</span>
+          <span class="info-row-value">${escapeHtml(String(item.value))}</span>
+        </div>
+      `).join('');
+      
+      // === Generation Info Section - Show ALL items with full content ===
+      const genEl = document.getElementById('infoGenContent');
+      // Get all non-file items
+      const genItems = infoItems.slice(4);
+      
+      if (genItems.length > 0) {
+        genEl.innerHTML = genItems.map(item => {
+          const val = String(item.value);
+          const isLongText = val.length > 80 || val.includes('\n');
+          
+          // Check if value looks like JSON (starts with { or [)
+          const trimmedVal = val.trim();
+          const looksLikeJson = (trimmedVal.startsWith('{') && trimmedVal.endsWith('}')) || 
+                                (trimmedVal.startsWith('[') && trimmedVal.endsWith(']'));
+          
+          if (looksLikeJson) {
+            // Try to parse and render as JSON Tree
+            try {
+              const parsed = JSON.parse(trimmedVal);
+              return `
+                <div class="info-prompt-block">
+                  <div class="info-prompt-label">${escapeHtml(item.key)} 🌳</div>
+                  <div class="json-tree">${renderJsonTree(parsed)}</div>
+                </div>
+              `;
+            } catch (e) {
+              // Not valid JSON, fall through to normal display
+            }
+          }
+          
+          if (isLongText) {
+            // Long text: use block format for better readability
+            return `
+              <div class="info-prompt-block">
+                <div class="info-prompt-label">${escapeHtml(item.key)}</div>
+                <div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(val)}</div>
+              </div>
+            `;
+          } else {
+            // Short value: use row format
+            return `
+              <div class="info-row">
+                <span class="info-row-key">${escapeHtml(item.key)}</span>
+                <span class="info-row-value">${escapeHtml(val)}</span>
+              </div>
+            `;
+          }
+        }).join('');
+      } else {
+        genEl.innerHTML = `<div class="info-empty">${getT('infoNoData')}</div>`;
+      }
+      
+      // === Full Parameters Section ===
+      const fullEl = document.getElementById('infoFullContent');
+      // Look for Description, Comment, or Full parameters
+      const fullItem = infoItems.find(item => 
+        item.key.includes('完整') || 
+        item.key.includes('Full') ||
+        item.key === 'Description' ||
+        item.key === 'Comment'
+      );
+      
+      if (fullItem) {
+        // Try to parse as JSON for tree view
+        try {
+          const parsed = JSON.parse(fullItem.value);
+          fullEl.innerHTML = `<div class="json-tree">${renderJsonTree(parsed)}</div>`;
+        } catch (e) {
+          // Not JSON, show as pre
+          fullEl.innerHTML = `<pre class="info-pre">${escapeHtml(fullItem.value)}</pre>`;
+        }
+      } else if (infoJsonData) {
+        fullEl.innerHTML = `<div class="json-tree">${renderJsonTree(infoJsonData)}</div>`;
+      } else {
+        // Show all items as fallback
+        const allData = {};
+        infoItems.forEach(item => allData[item.key] = item.value);
+        if (Object.keys(allData).length > 4) {
+          fullEl.innerHTML = `<div class="json-tree">${renderJsonTree(allData)}</div>`;
+        } else {
+          fullEl.innerHTML = `<div class="info-empty">${getT('infoEmpty')}</div>`;
+        }
+      }
+      
+      // === EXIF Data Section ===
+      const exifEl = document.getElementById('infoExifContent');
+      if (infoExifItems.length > 0) {
+        exifEl.innerHTML = infoExifItems.map(item => `
+          <div class="info-row">
+            <span class="info-row-key">${escapeHtml(item.key)}</span>
+            <span class="info-row-value" title="${escapeHtml(String(item.value))}">${escapeHtml(String(item.value))}</span>
+          </div>
+        `).join('');
+      } else {
+        exifEl.innerHTML = `<div class="info-empty">${getT('infoEmpty')}</div>`;
+      }
+    }
+    
+    // ===== JSON Tree Renderer =====
+    function renderJsonTree(obj, depth = 0, parentKey = '') {
+      if (obj === null) return '<span class="json-null">null</span>';
+      if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+      if (typeof obj === 'number') return `<span class="json-number">${obj}</span>`;
+      if (typeof obj === 'string') {
+        // Show full string without truncation
+        return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+      }
+      
+      if (Array.isArray(obj)) {
+        if (obj.length === 0) return '<span class="json-bracket">[]</span>';
+        const items = obj.map((item, i) => `<li class="${typeof item === 'object' && item !== null ? 'json-expanded' : 'json-leaf'}"><span class="json-toggle" onclick="this.parentElement.classList.toggle('json-collapsed');this.parentElement.classList.toggle('json-expanded')"></span><span class="json-key">[${i}]</span>: ${renderJsonTree(item, depth + 1, String(i))}</li>`).join('');
+        return `<span class="json-bracket">[</span><ul>${items}</ul><span class="json-bracket">]</span>`;
+      }
+      
+      if (typeof obj === 'object') {
+        const keys = Object.keys(obj);
+        if (keys.length === 0) return '<span class="json-bracket">{}</span>';
+        const items = keys.map(key => {
+          const val = obj[key];
+          const isComplex = typeof val === 'object' && val !== null;
+          // reference_image_multiple should be collapsed by default
+          const shouldCollapse = key.includes('reference_image_multiple') || key.includes('reference_information_extracted_multiple');
+          const expandedClass = isComplex ? (shouldCollapse ? 'json-collapsed' : 'json-expanded') : 'json-leaf';
+          return `<li class="${expandedClass}"><span class="json-toggle" onclick="this.parentElement.classList.toggle('json-collapsed');this.parentElement.classList.toggle('json-expanded')"></span><span class="json-key">"${escapeHtml(key)}"</span>: ${renderJsonTree(val, depth + 1, key)}</li>`;
+        }).join('');
+        return `<span class="json-bracket">{</span><ul>${items}</ul><span class="json-bracket">}</span>`;
+      }
+      
+      return String(obj);
+    }
+    
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(getT('toastCopied'), 'success');
+      });
+    }
+    
+    function copyAllInfo() {
+      let text = '=== Image Info ===\n';
+      infoItems.forEach(item => text += `${item.key}: ${item.value}\n`);
+      text += '\n=== EXIF ===\n';
+      infoExifItems.forEach(item => text += `${item.key}: ${item.value}\n`);
+      
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(getT('toastCopied'), 'success');
+      });
+    }
+
+
+    /* --- DOM LISTENERS --- */
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    
+    dropZone.addEventListener('click', () => { fileInput.value = ''; }); // label already triggers input
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.transform = "scale(1.02)"; });
+    dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.style.transform = "scale(1)"; });
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.transform = "scale(1)"; if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', e => { if(e.target.files[0]) { loadFile(e.target.files[0]); e.target.value = ''; } });
+
+    document.getElementById('btnApplyMeta').addEventListener('click', saveMetadata);
+    document.getElementById('btnApplyExif').addEventListener('click', saveExif); // EXIF specific
+    document.getElementById('btnClearMeta').addEventListener('click', clearMetaOnly);
+    document.getElementById('btnClearExif').addEventListener('click', clearExif);
+    
+    // Obfuscation btn listeners in HTML onclick attr for simplicity
+
+    /* --- FILE LOADING LOGIC --- */
+    async function loadFile(file) {
+      currentFile = file;
+      document.getElementById('fileInfoText').innerHTML = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+      
+      const buf = await file.arrayBuffer();
+      fileBuffer = buf;
+      const bytes = new Uint8Array(buf);
+      
+      // Detec Type
+      if (bytes[0] === 0x89 && bytes[1] === 0x50) fileFormat = 'png';
+      else if (bytes[0] === 0xFF && bytes[1] === 0xD8) fileFormat = 'jpeg';
+      else fileFormat = 'unknown';
+
+      document.getElementById('fileTypeBadge').textContent = fileFormat.toUpperCase();
+      document.getElementById('fileTypeBadge').style.display = 'inline-block';
+
+      document.getElementById('btnApplyMeta').disabled = false;
+      document.getElementById('btnClearMeta').disabled = false;
+      document.getElementById('btnClearAll').disabled = false;
+      document.getElementById('btnApplyExif').disabled = fileFormat !== 'jpeg';
+      document.getElementById('btnClearExif').disabled = fileFormat !== 'jpeg';
+
+      // Visual Preview
+      const url = URL.createObjectURL(file);
+      const img = document.getElementById('preview');
+      img.src = url;
+      img.style.display = 'block';
+      document.getElementById('workCanvas').style.display = 'none'; // hide canvas initially
+      document.getElementById('previewPlaceholder').style.display = 'none';
+
+      // Reset States
+      document.getElementById('btnEncrypt').disabled = false;
+      document.getElementById('btnDecrypt').disabled = false;
+      document.getElementById('btnReloadObf').style.display = 'none';
+
+      // Parse Metadata
+      parseMetadata(bytes);
+      
+      // Auto Obfuscation Check
+      const autoMode = document.querySelector('input[name="autoObf"]:checked')?.value;
+      if (autoMode === 'encrypt' || autoMode === 'decrypt') {
+        // Wait for image to load then auto process
+        img.onload = () => {
+          setTimeout(() => {
+            runObfuscation(autoMode === 'encrypt');
+          }, 100);
+        };
+      }
+    }
+
+    /* --- METADATA PARSING & STATE --- */
+    let pngCommentObj = null; // Store the full metadata object
+    let originalData = {}; 
+    let actualData = {};
+    let hasActual = false;
+    let isShowingActual = false;
+    const sdFields = ["Steps", "Sampler", "Schedule type", "CFG scale", "Seed", "Size", "Model hash", "Model", "Denoising strength", "RNG", "SD upscale overlap", "SD upscale upscaler", "Version", "Module 1"];
+
+    async function parseMetadata(bytes) {
+       // Reset Form
+       ['fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg', 'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'].forEach(id => document.getElementById(id).value = '');
+       document.getElementById('charList').innerHTML = '';
+       document.getElementById('treeView').innerHTML = '';
+       document.getElementById('rawEditor').value = '';
+       pngCommentObj = null;
+       isSD = false;
+       isComfy = false;
+       hasActual = false;
+       isShowingActual = false;
+       document.getElementById('btnToggleActual').style.display = 'none';
+
+       if (fileFormat === 'png') {
+         try {
+             const texts = await parsePngText(bytes.buffer);
+             let foundData = false;
+             
+             // 1. Try "parameters" (SD WebUI)
+             let paramKey = Object.keys(texts).find(k => k.toLowerCase() === 'parameters');
+             if (paramKey) {
+                 isSD = true;
+                 pngCommentObj = parseSDString_V2(texts[paramKey]);
+                 originalData = { ...pngCommentObj }; // Store original
+                 
+                 // Check for "Original Data" field (sometimes present in edits)
+                 // For now, we assume simple SD. If extended features needed, add here.
+                 hasActual = false; 
+                 document.getElementById('btnToggleActual').style.display = 'none';
+                 
+                 fillFormFromData(pngCommentObj, texts);
+                 foundData = true;
+             }
+             
+             // 2. Try JSON (NovelAI / Comfy)
+             if (!foundData) {
+                 for (let key in texts) {
+                     let val = (texts[key] || '').trim();
+                     if (val.startsWith('{') || key === 'Comment') { 
+                         try { 
+                             let obj = JSON.parse(val); 
+                             pngCommentObj = obj;
+                             isSD = false; 
+                             fillFormFromData(pngCommentObj, texts); 
+                             foundData = true; 
+                             break; 
+                         } catch (e) { }
+                     }
+                 }
+             }
+
+             if (!foundData && Object.keys(texts).length > 0) {
+                 pngCommentObj = texts;
+                 isSD = false;
+                 fillFormFromData(pngCommentObj, texts);
+                 foundData = true;
+             }
+
+             if (!foundData) {
+                 const sniff = sniffSdDataFromBinary(bytes.buffer);
+                 if (sniff) {
+                     isSD = true;
+                     pngCommentObj = sniff.obj ? sniff.obj : parseSDString_V2(sniff.text);
+                     fillFormFromData(pngCommentObj, sniff.raw || {});
+                     foundData = true;
+                 }
+             }
+
+             if (foundData) { 
+               updateRawView(); 
+               showToast(getT('toastMetaFound'), 'success');
+               // Populate Info Panel
+               populateInfoPanel(currentFile, pngCommentObj, texts);
+             }
+             else { showToast(getT('toastNoMeta'), 'warn'); }
+         } catch(e) { console.error(e); }
+
+       } else if (fileFormat === 'jpeg') {
+         // JPEG Logic
+         try {
+            const dataUrl = await blobToDataURL(new Blob([bytes]));
+            const piexifObj = piexif.load(dataUrl);
+            loadJpegExifData(piexifObj);
+            
+            // UserComment (SD)
+            const uc = JPEG_SD_UserComment_V2(piexifObj);
+            if (uc) {
+                let sdPayload = null;
+                if (typeof uc === 'string') sdPayload = { text: uc };
+                else sdPayload = { obj: uc.obj || uc, raw: uc.raw || {} };
+                
+                if (sdPayload) {
+                    isSD = true;
+                    pngCommentObj = sdPayload.obj ? sdPayload.obj : parseSDString_V2(sdPayload.text);
+                    fillFormFromData(pngCommentObj, sdPayload.raw || {});
+                    updateRawView();
+                    showToast(getT('toastMetaFound'), 'success');
+                    // Populate Info Panel for JPEG
+                    populateInfoPanel(currentFile, pngCommentObj, sdPayload.raw || {});
+                    return;
+                }
+            }
+            
+            const sniff = sniffSdDataFromBinary(bytes.buffer);
+            if (sniff) {
+                isSD = true;
+                pngCommentObj = sniff.obj ? sniff.obj : parseSDString_V2(sniff.text);
+                fillFormFromData(pngCommentObj, sniff.raw || {});
+                updateRawView();
+                showToast(getT('toastMetaFound'), 'success');
+                // Populate Info Panel
+                populateInfoPanel(currentFile, pngCommentObj, sniff.raw || {});
+            } else {
+                showToast(getT('toastJPEGFound'), 'success');
+                // Still populate file info even without AI metadata
+                populateInfoPanel(currentFile, {}, {});
+            }
+         } catch(e) {}
+       }
+    }
+
+    // --- PARSERS & HELPERS ---
+    function decodeBinaryString(buffer) { try { return new TextDecoder('utf-8').decode(buffer); } catch (e) { try { return new TextDecoder('latin1').decode(buffer); } catch (err) { return ""; } } }
+    function extractJsonNearKeyword(str, keyword) { const idx = str.toLowerCase().indexOf(keyword.toLowerCase()); if (idx === -1) return null; let start = idx; while (start > 0 && str[start] !== '{') start--; if (str[start] !== '{') return null; let depth = 0; const limit = Math.min(str.length, start + 20000); for (let i = start; i < limit; i++) { const ch = str[i]; if (ch === '{') depth++; else if (ch === '}') { depth--; if (depth === 0) return str.slice(start, i + 1); } } return null; }
+    function sniffSdDataFromBinary(buffer) { const raw = decodeBinaryString(buffer); if (!raw) return null; const clean = raw.replace(/[^\x09\x0a\x0d\x20-\x7e]/g, ' '); const jsonChunk = extractJsonNearKeyword(clean, '"prompt"') || extractJsonNearKeyword(clean, '"negative_prompt"'); if (jsonChunk) { try { return { obj: JSON.parse(jsonChunk), source: 'json-chunk' }; } catch (e) { } } const lower = clean.toLowerCase(); const negIdx = lower.indexOf("negative prompt:"); const stepsIdx = lower.indexOf("steps:"); if (negIdx !== -1 && stepsIdx !== -1 && stepsIdx > negIdx) { const start = Math.max(0, clean.lastIndexOf('\n', negIdx - 1) - 2000); const end = Math.min(clean.length, stepsIdx + 1200); return { text: clean.slice(start, end).trim(), source: 'text-chunk' }; } return null; }
+
+    window.toggleActualPrompt = function () { 
+       if (!hasActual) return; 
+       isShowingActual = !isShowingActual; 
+       const btn = document.getElementById('btnToggleActual'); 
+       if (isShowingActual) { 
+           renderUI(actualData || {});
+           btn.style.background = "var(--accent)"; btn.style.color = "#fff"; 
+           document.body.classList.add('actual-mode'); 
+       } else { 
+           renderUI(originalData || {});
+           btn.style.background = "none"; btn.style.color = "var(--accent)"; 
+           document.body.classList.remove('actual-mode'); 
+       } 
+    };
+
+    async function parsePngText(buffer) {
+      const bytes = new Uint8Array(buffer); const view = new DataView(buffer); 
+      const latin1Dec = new TextDecoder('latin1'); const utf8Dec = new TextDecoder('utf-8'); 
+      let pos = 8; const out = {};
+      
+      while (pos + 8 <= bytes.length) {
+        const len = view.getUint32(pos); 
+        const type = String.fromCharCode(...bytes.slice(pos + 4, pos + 8)); 
+        const data = bytes.slice(pos + 8, pos + 8 + len);
+        
+        if (type === 'tEXt' || type === 'iTXt' || type === 'zTXt') {
+          const z = data.indexOf(0);
+          if (z > -1) {
+            let k = latin1Dec.decode(data.slice(0, z)); let v = "";
+            if (type === 'tEXt') v = utf8Dec.decode(data.slice(z + 1));
+            else if (type === 'zTXt') { 
+                if (data[z + 1] === 0) { 
+                    try { 
+                        const ds = new DecompressionStream("deflate"); 
+                        const writer = ds.writable.getWriter(); 
+                        writer.write(data.slice(z + 2)); 
+                        writer.close(); 
+                        const output = await new Response(ds.readable).arrayBuffer(); 
+                        v = utf8Dec.decode(output); 
+                    } catch (e) { } 
+                } 
+            }
+            else { 
+                let p = z + 3; 
+                const langEnd = data.indexOf(0, p); p = (langEnd > -1) ? langEnd + 1 : p; 
+                const transEnd = data.indexOf(0, p); p = (transEnd > -1) ? transEnd + 1 : p; 
+                v = utf8Dec.decode(data.slice(p)); 
+            }
+            out[k] = v;
+          }
+        }
+        pos += len + 12;
+      }
+      return out;
+    }
+
+    function parseSDString_V2(text) {
+      if (!text) return {}; const lines = text.split('\n'); let prompt = "", negative = "", params = "", phase = 0;
+      for (let line of lines) { let tLine = line.trim(); if (!tLine) continue; if (tLine.startsWith("Negative prompt:")) { negative += tLine.substring(16).trim(); phase = 1; continue; } if (tLine.startsWith("Steps:")) { params = tLine; phase = 2; continue; } if (phase === 0) prompt += line + "\n"; else if (phase === 1) negative += line + "\n"; else if (phase === 2) params += line + " "; }
+      const data = {}; data["prompt"] = prompt.trim(); data["negative_prompt"] = negative.trim();
+      if (params) { const parts = params.split(/,\s+(?=[a-zA-Z0-9\s]+:)/); parts.forEach(p => { let sep = p.indexOf(':'); if (sep > -1) data[p.slice(0, sep).trim()] = p.slice(sep + 1).trim(); }); }
+      sdFields.forEach(f => { if (!data.hasOwnProperty(f)) data[f] = null; }); return data;
+    }
+
+    function JPEG_SD_UserComment_V2(ex) {
+      if (!ex || !ex["Exif"]) return null; const uc = ex["Exif"][piexif.ExifIFD.UserComment]; if (!uc) return null; let str = "";
+      if (Array.isArray(uc)) { let start = 0; if (uc.length >= 8 && uc.slice(0, 8).map(c => String.fromCharCode(c)).join("").match(/^(UNICODE|ASCII)/)) start = 8; str = uc.slice(start).filter(c => c !== 0).map(c => String.fromCharCode(c)).join(""); } else if (typeof uc === 'string') { str = uc.replace(/^(UNICODE|ASCII)\0+/, ''); }
+      str = str.replace(/\0/g, '').trim(); if (!str) return null;
+      try { const j = JSON.parse(str); if (j && typeof j === 'object') return { obj: j, raw: j }; } catch (e) { }
+      if (str.includes("Steps:") || (str.toLowerCase().includes("prompt") && str.toLowerCase().includes("negative"))) return str;
+      return null;
+    }
+    function decodeExifUserComment(uc) {
+      if (!uc) return "";
+      let str = "";
+      if (Array.isArray(uc)) {
+        let start = 0;
+        if (uc.length >= 8 && uc.slice(0, 8).map(c => String.fromCharCode(c)).join("").match(/^(UNICODE|ASCII)/)) start = 8;
+        str = uc.slice(start).filter(c => c !== 0).map(c => String.fromCharCode(c)).join("");
+      } else if (typeof uc === 'string') {
+        str = uc.replace(/^(UNICODE|ASCII)\0+/, '');
+      }
+      return str.replace(/\0/g, '').trim();
+    }
+    function loadJpegExifData(piexifObj) {
+      try {
+        const th = piexifObj["0th"] || {};
+        const xif = piexifObj["Exif"] || {};
+        const gps = piexifObj["GPS"] || {};
+        setFieldVal('exifMake', th[piexif.ImageIFD.Make] || "");
+        setFieldVal('exifModel', th[piexif.ImageIFD.Model] || "");
+        setFieldVal('exifSoftware', th[piexif.ImageIFD.Software] || "");
+        setFieldVal('exifDateTime', th[piexif.ImageIFD.DateTime] || "");
+        if (xif[piexif.ExifIFD.ExposureTime]) setFieldVal('exifExposure', xif[piexif.ExifIFD.ExposureTime][0] + '/' + xif[piexif.ExifIFD.ExposureTime][1]);
+        if (xif[piexif.ExifIFD.FNumber]) setFieldVal('exifFNumber', (xif[piexif.ExifIFD.FNumber][0] / xif[piexif.ExifIFD.FNumber][1]).toFixed(1));
+        if (xif[piexif.ExifIFD.FocalLength]) setFieldVal('exifFocal', (xif[piexif.ExifIFD.FocalLength][0] / xif[piexif.ExifIFD.FocalLength][1]).toFixed(1));
+        if (xif[piexif.ExifIFD.ISOSpeedRatings]) setFieldVal('exifISO', xif[piexif.ExifIFD.ISOSpeedRatings]);
+        if (xif[piexif.ExifIFD.UserComment]) setFieldVal('exifUserComment', decodeExifUserComment(xif[piexif.ExifIFD.UserComment]));
+        if (gps[piexif.GPSIFD.GPSLatitude]) setFieldVal('exifLat', dmsRationalToDeg(gps[piexif.GPSIFD.GPSLatitude], gps[piexif.GPSIFD.GPSLatitudeRef]).toFixed(6));
+        if (gps[piexif.GPSIFD.GPSLongitude]) setFieldVal('exifLong', dmsRationalToDeg(gps[piexif.GPSIFD.GPSLongitude], gps[piexif.GPSIFD.GPSLongitudeRef]).toFixed(6));
+        if (gps[piexif.GPSIFD.GPSAltitude]) setFieldVal('exifAlt', (gps[piexif.GPSIFD.GPSAltitude][0] / gps[piexif.GPSIFD.GPSAltitude][1]).toFixed(1));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function extractComfyPrompts(obj) {
+      const texts = [];
+      const walk = (o) => {
+        if (!o || typeof o !== 'object') return;
+        if (o.class_type && o.inputs && typeof o.inputs.text === 'string') {
+          texts.push({ text: o.inputs.text, source: o.class_type });
+        }
+        Object.values(o).forEach(v => { if (typeof v === 'object') walk(v); });
+      };
+      walk(obj);
+      if (texts.length === 0) return {};
+      const negKeywords = /(negative prompt|worst quality|low quality|bad quality|watermark|signature|jpeg artifacts|ugly|deformed|bad anatomy|extra fingers|censor)/i;
+      const pos = [], neg = [];
+      texts.forEach(t => { if (negKeywords.test(t.text)) neg.push(t); else pos.push(t); });
+      const prompt = pos.length ? pos.sort((a, b) => b.text.length - a.text.length)[0].text : texts[0].text;
+      const negative = neg.length ? neg.sort((a, b) => b.text.length - a.text.length)[0].text : (pos.length > 1 ? pos[1].text : "");
+      return { prompt, negative, found: true };
+    }
+
+    function extractDataFromObj(obj) {
+      const getStr = (val) => {
+        if (typeof val === 'string') return val;
+        if (val && typeof val === 'object') {
+          if (val.base_caption) return val.base_caption;
+          try { return JSON.stringify(val); } catch (e) { return ""; }
+        }
+        return "";
+      };
+      let p = getStr(obj.prompt) || getStr(obj.v4_prompt?.caption) || "";
+      let n = getStr(obj.uc) || getStr(obj.negative_prompt) || getStr(obj.v4_negative_prompt?.caption) || "";
+      let chars = [];
+      let charList = obj.char_captions || (obj.v4_prompt?.caption?.char_captions) || (obj.prompt?.char_captions);
+      let negCharList = (obj.v4_negative_prompt?.caption?.char_captions) || (obj.negative_prompt?.char_captions);
+      if (charList && Array.isArray(charList)) {
+        charList.forEach((char, idx) => {
+          const posTxt = getStr(char.char_caption);
+          let negTxt = "";
+          if (negCharList && negCharList[idx]) negTxt = getStr(negCharList[idx].char_caption);
+          else if (char.uc) negTxt = getStr(char.uc);
+          let x = 0.5, y = 0.5;
+          if (char.centers && char.centers[0]) { x = char.centers[0].x || 0.5; y = char.centers[0].y || 0.5; }
+          chars.push({ text: posTxt, uc: negTxt, x, y });
+        });
+      }
+      if (obj && typeof obj === 'object') {
+        const comfy = extractComfyPrompts(obj);
+        if (comfy.found) {
+          isComfy = true;
+          if (!p && comfy.prompt) p = comfy.prompt;
+          if (!n && comfy.negative) n = comfy.negative;
+        }
+      }
+      return { prompt: p, negative: n, chars: chars };
+    }
+
+    function fillFormFromData(obj, rawTexts) {
+      const o = obj || {};
+      isComfy = false;
+      originalData = extractDataFromObj(o);
+      if (o.actual_prompts) { hasActual = true; document.getElementById('btnToggleActual').style.display = "inline-block"; actualData = extractDataFromObj(o.actual_prompts); }
+      else { hasActual = false; document.getElementById('btnToggleActual').style.display = "none"; }
+      renderUI(originalData);
+      setFieldVal('fieldSteps', pickFirst(o.steps, o.Steps));
+      setFieldVal('fieldCfg', pickFirst(o.cfg_rescale, o["CFG scale"], o.scale));
+      setFieldVal('fieldSeed', pickFirst(o.seed, o.Seed));
+      setFieldVal('fieldNSamples', pickFirst(o.n_samples));
+      setFieldVal('fieldNoise', pickFirst(o.noise_schedule, o.Sampler, o.sampler));
+      const sw = pickFirst(o.software, rawTexts && rawTexts["Software"], isSD ? "Stable Diffusion" : "NovelAI");
+      setFieldVal('fieldSoftware', sw);
+      const src = pickFirst(o.source, rawTexts && rawTexts["Source"], isSD ? (o.Model || "Unknown Model") : "Stable Diffusion");
+      setFieldVal('fieldSource', src);
+      const cStr = (rawTexts && rawTexts["Comment"]) || "";
+      if (cStr && !cStr.startsWith('{')) setFieldVal('fieldComment', cStr);
+      else setFieldVal('fieldComment', pickFirst(o.comment));
+      setFieldVal('fieldTitle', pickFirst(rawTexts && rawTexts["Title"], o.title));
+    }
+
+    function renderUI(data) {
+      setFieldVal('fieldPrompt', data.prompt || "");
+      setFieldVal('fieldNegative', data.negative || "");
+      const charList = document.getElementById('charList');
+      charList.innerHTML = '';
+      if (data.chars && data.chars.length > 0) {
+        data.chars.forEach(c => addCharToUI(c.text, c.uc, c.x, c.y));
+      }
+      refreshDynamicUI();
+    }
+
+    function addCharToUI(text = "", uc = "", x = 0.5, y = 0.5) {
+      const div = document.createElement('div');
+      div.className = 'char-item';
+      div.innerHTML = `
+        <div class="char-item-header" style="display:flex; justify-content:space-between; margin-bottom:5px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-weight:600; color:var(--accent);">${getT('charLabel')}</span>
+            <button class="btn-toggle-uc" onclick="toggleCharUC(this)" style="font-size:10px; cursor:pointer;">${getT('charToggleNeg')}</button>
+          </div>
+          <button class="btn-remove-char" onclick="this.closest('.char-item').remove()" style="color:red; background:none; border:none; cursor:pointer;">${getT('charRemove')}</button>
+        </div>
+        <textarea class="char-text" placeholder="Pos Tag..." style="min-height:40px;">${text}</textarea>
+        <textarea class="char-uc-area" placeholder="Neg Tag..." style="display:none; min-height:40px; border-color:red;">${uc}</textarea>
+        <div class="char-coords" style="margin-top:5px; font-size:11px; display:flex; gap:5px; align-items:center;">
+          <span>${getT('charCenter')}</span>
+          X:<input type="number" step="0.01" class="char-x" value="${x}" style="width:50px; padding:2px;">
+          Y:<input type="number" step="0.01" class="char-y" value="${y}" style="width:50px; padding:2px;">
+        </div>
+      `;
+      document.getElementById('charList').appendChild(div);
+    }
+
+    window.toggleCharUC = function (btn) {
+      const item = btn.closest('.char-item');
+      const posArea = item.querySelector('.char-text');
+      const negArea = item.querySelector('.char-uc-area');
+      if (negArea.style.display === 'none') {
+        posArea.style.display = 'none'; negArea.style.display = 'block'; btn.classList.add('active'); btn.textContent = getT('charTogglePos');
+      } else {
+        negArea.style.display = 'none'; posArea.style.display = 'block'; btn.classList.remove('active'); btn.textContent = getT('charToggleNeg');
+      }
+    };
+    
+    /* --- RAW DATA LOGIC --- */
+    function toggleRawData() { 
+        const rawContainer = document.getElementById('rawContainer');
+        const rawArrow = document.getElementById('rawArrow');
+        if (rawContainer.classList.contains('show')) { 
+            rawContainer.classList.remove('show'); rawArrow.textContent = '\u25BC'; 
+        } else { 
+            rawContainer.classList.add('show'); rawArrow.textContent = '\u25B2'; updateRawView(); 
+        } 
+    }
+
+    function updateRawView() { 
+        const treeView = document.getElementById('treeView');
+        const rawEditor = document.getElementById('rawEditor');
+        treeView.innerHTML = ''; 
+        if (!pngCommentObj) { treeView.innerHTML = '// No Data'; rawEditor.value = ""; return; } 
+        try { treeView.appendChild(createJsonTree(pngCommentObj)); } catch (e) { } 
+        rawEditor.value = JSON.stringify(pngCommentObj, null, 2); 
+    }
+    
+    function toggleRawEdit() { 
+        const treeView = document.getElementById('treeView');
+        const rawEditor = document.getElementById('rawEditor');
+        const btnRawEdit = document.getElementById('btnRawEdit');
+        const btnRawSave = document.getElementById('btnRawSave');
+        
+        if (rawEditor.style.display === 'block') { 
+            rawEditor.style.display = 'none'; treeView.style.display = 'block'; btnRawEdit.textContent = 'Edit'; btnRawSave.style.display = 'none'; 
+        } else { 
+            treeView.style.display = 'none'; rawEditor.style.display = 'block'; btnRawEdit.textContent = 'Cancel'; btnRawSave.style.display = 'inline-block'; 
+        } 
+    }
+    
+    function saveRawData() { 
+        try { 
+            const n = JSON.parse(document.getElementById('rawEditor').value); 
+            pngCommentObj = n; 
+            if (isSD) fillFormFromData(n, {}); 
+            else fillFormFromData(n, { "Comment": JSON.stringify(n) }); 
+            updateRawView(); 
+            toggleRawEdit(); 
+            showToast("Synced!", "success"); 
+        } catch (e) { showToast("JSON Error", "error"); } 
+    }
+    
+    function createJsonTree(data) {
+      if (data === null) { const s = document.createElement('span'); s.className = 'j-null'; s.textContent = 'null'; return s; }
+      if (typeof data === 'boolean') { const s = document.createElement('span'); s.className = 'j-bool'; s.textContent = data; return s; }
+      if (typeof data === 'number') { const s = document.createElement('span'); s.className = 'j-num'; s.textContent = data; return s; }
+      if (typeof data === 'string') { const s = document.createElement('span'); s.className = 'j-str'; s.textContent = `"${data}"`; return s; }
+      if (Array.isArray(data)) {
+        if (data.length === 0) { const s = document.createElement('span'); s.textContent = '[]'; return s; }
+        const details = document.createElement('details'); details.open = true;
+        const summary = document.createElement('summary'); summary.textContent = `Array [${data.length}]`; details.appendChild(summary);
+        data.forEach((item, index) => { const div = document.createElement('div'); div.style.paddingLeft = '12px'; const idxSpan = document.createElement('span'); idxSpan.style.color = '#888'; idxSpan.textContent = index + ': '; div.appendChild(idxSpan); div.appendChild(createJsonTree(item)); details.appendChild(div); });
+        return details;
+      }
+      if (typeof data === 'object') {
+        if (Object.keys(data).length === 0) { const s = document.createElement('span'); s.textContent = '{}'; return s; }
+        const details = document.createElement('details'); details.open = true;
+        const summary = document.createElement('summary'); summary.textContent = 'Object'; details.appendChild(summary);
+        for (const key in data) { const div = document.createElement('div'); div.style.paddingLeft = '12px'; const keySpan = document.createElement('span'); keySpan.className = 'j-key'; keySpan.textContent = key + ': '; div.appendChild(keySpan); div.appendChild(createJsonTree(data[key])); details.appendChild(div); }
+        return details;
+      }
+      return document.createElement('span');
+    }
+
+    /* --- OBFUSCATION LOGIC --- */
+    function gilbert2d(width, height) {
+        const coords = [];
+        if (width >= height) gen2d(0, 0, width, 0, 0, height, coords);
+        else gen2d(0, 0, 0, height, width, 0, coords);
+        return coords;
+    }
+    function gen2d(x, y, ax, ay, bx, by, coords) {
+        const w = Math.abs(ax + ay), h = Math.abs(bx + by);
+        const dax = Math.sign(ax), day = Math.sign(ay), dbx = Math.sign(bx), dby = Math.sign(by);
+        if (h === 1) { for (let i = 0; i < w; i++) { coords.push([x, y]); x += dax; y += day; } return; }
+        if (w === 1) { for (let i = 0; i < h; i++) { coords.push([x, y]); x += dbx; y += dby; } return; }
+        let ax2 = Math.floor(ax / 2), ay2 = Math.floor(ay / 2), bx2 = Math.floor(bx / 2), by2 = Math.floor(by / 2);
+        const w2 = Math.abs(ax2 + ay2), h2 = Math.abs(bx2 + by2);
+        if (2 * w > 3 * h) {
+            if ((w2 % 2) && (w > 2)) { ax2 += dax; ay2 += day; }
+            gen2d(x, y, ax2, ay2, bx, by, coords);
+            gen2d(x + ax2, y + ay2, ax - ax2, ay - ay2, bx, by, coords);
+        } else {
+            if ((h2 % 2) && (h > 2)) { bx2 += dbx; by2 += dby; }
+            gen2d(x, y, bx2, by2, ax2, ay2, coords);
+            gen2d(x + bx2, y + by2, ax, ay, bx - bx2, by - by2, coords);
+            gen2d(x + (ax - dax) + (bx2 - dbx), y + (ay - day) + (by2 - dby), -bx2, -by2, -(ax - ax2), -(ay - ay2), coords);
+        }
+    }
+
+    function runObfuscation(encrypt) {
+       const img = document.getElementById('preview');
+       if (!img.src || img.style.display === 'none') {
+           // Maybe using canvas? 
+           if (document.getElementById('workCanvas').style.display !== 'block') return;
+       }
+       
+       document.getElementById('obfStatus').textContent = "Processing... ✨";
+       
+       requestAnimationFrame(() => {
+           const cvs = document.getElementById('workCanvas');
+           const ctx = cvs.getContext('2d');
+           // Set dims only if not set
+           if (img.style.display !== 'none') {
+               cvs.width = img.naturalWidth;
+               cvs.height = img.naturalHeight;
+               ctx.drawImage(img, 0, 0);
+               img.style.display = 'none';
+               cvs.style.display = 'block';
+           }
+           
+           const w = cvs.width, h = cvs.height;
+           const d1 = ctx.getImageData(0, 0, w, h);
+           const d2 = new ImageData(w, h);
+           const curve = gilbert2d(w, h);
+           const total = w * h;
+           
+           const pass = document.getElementById('obfPass').value;
+           let off = 0;
+           if (pass) {
+               let hash = 5381;
+               for (let i = 0; i < pass.length; i++) hash = ((hash << 5) + hash + pass.charCodeAt(i)) >>> 0;
+               const ratio = 0.1 + (hash % 80000) / 100000;
+               off = Math.round(ratio * total);
+           } else {
+               off = Math.round((Math.sqrt(5) - 1) / 2 * total);
+           }
+
+           for (let i = 0; i < total; i++) {
+                const p1 = curve[i], p2 = curve[(i + off) % total];
+                const i1 = 4 * (p1[0] + p1[1] * w), i2 = 4 * (p2[0] + p2[1] * w);
+                if (encrypt) d2.data.set(d1.data.slice(i1, i1 + 4), i2);
+                else d2.data.set(d1.data.slice(i2, i2 + 4), i1);
+           }
+           
+           ctx.putImageData(d2, 0, 0);
+           document.getElementById('obfStatus').textContent = "";
+           showToast(encrypt ? getT('toastObfDone') : getT('toastRestored'), 'success');
+           document.getElementById('btnSaveObf').disabled = false;
+           document.getElementById('btnReloadObf').style.display = 'block';
+           
+           // Save to history (both encrypt and decrypt)
+           try {
+               const dataUrl = cvs.toDataURL('image/png', 0.6);
+               saveToObfHistory(dataUrl, currentFile?.name || 'processed.png');
+           } catch(e) { console.error('History save error:', e); }
+       });
+    }
+
+    function saveObfuscated() {
+        const cvs = document.getElementById('workCanvas');
+        const mime = fileFormat === 'png' ? 'image/png' : 'image/jpeg';
+        
+        cvs.toBlob(async blob => {
+             let finalBlob = blob;
+             
+             // Try to inject metadata if PNG
+             if (fileFormat === 'png' && pngCommentObj) {
+                 try {
+                     const buf = await blob.arrayBuffer();
+                     // Reconstruct simple map similar to saveMetadata
+                     let cObj = { ...pngCommentObj };
+                     
+                     // If SD, rebuild parameters
+                     if (isSD) {
+                         const getVal = (id) => document.getElementById(id).value;
+                         if(getVal('fieldPrompt')) cObj["prompt"] = getVal('fieldPrompt');
+                         let out = cObj["prompt"] + "\nNegative prompt: " + (cObj["negative_prompt"]||"") + "\n";
+                         // we skip full reconstruction here for brevity, but at least prompt/neg is preserved
+                         finalBlob = insertPngChunks(buf, { "parameters": out });
+                     } else {
+                         // NAI or other
+                         finalBlob = insertPngChunks(buf, { "Comment": JSON.stringify(cObj) });
+                     }
+                     showToast(getT('toastSaved'), 'success');
+                 } catch(e) { console.error("Meta inject failed", e); }
+             }
+             
+             downloadBlob(finalBlob, "magic_result." + (fileFormat || 'png'));
+        }, mime);
+    }
+    
+    function reloadFromCanvas() {
+        const cvs = document.getElementById('workCanvas');
+        cvs.toBlob(blob => {
+             // Preserve name
+             blob.name = "obfuscated." + (fileFormat || 'png');
+             loadFile(blob);
+        }, fileFormat === 'png' ? 'image/png' : 'image/jpeg');
+    }
+    
+    /* --- EXIF DATE HELPERS --- */
+    function applyDateFromPicker(picker, fieldId) {
+        if (!picker.value) return;
+        const d = new Date(picker.value);
+        const exifDate = `${d.getFullYear()}:${String(d.getMonth()+1).padStart(2,'0')}:${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:00`;
+        document.getElementById(fieldId).value = exifDate;
+        showToast('✅ 已应用', 'success');
+    }
+    
+    /* --- OBFUSCATION HISTORY --- */
+    const OBF_HISTORY_KEY = 'magic_obf_history';
+    
+    function saveToObfHistory(dataUrl, filename) {
+        try {
+            let history = JSON.parse(localStorage.getItem(OBF_HISTORY_KEY) || '[]');
+            history.unshift({ dataUrl, filename, time: Date.now() });
+            if (history.length > 12) history = history.slice(0, 12); // Keep last 12
+            localStorage.setItem(OBF_HISTORY_KEY, JSON.stringify(history));
+            renderObfHistory();
+        } catch (e) { console.error('History save failed:', e); }
+    }
+    
+    function renderObfHistory() {
+        const container = document.getElementById('obfHistory');
+        let history = [];
+        try { history = JSON.parse(localStorage.getItem(OBF_HISTORY_KEY) || '[]'); } catch (e) {}
+        
+        if (history.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:11px; padding:20px 0; grid-column: 1/-1;">暂无记录</div>';
+            return;
+        }
+        
+        container.innerHTML = history.map((item, i) => `
+            <div style="cursor:pointer; border-radius:8px; overflow:hidden; border:2px solid var(--border-input); transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-pink)'" onmouseout="this.style.borderColor='var(--border-input)'" onclick="loadFromHistory(${i})">
+                <img src="${item.dataUrl}" style="width:100%; aspect-ratio:1; object-fit:cover;" alt="history"/>
+            </div>
+        `).join('');
+    }
+    
+    window.loadFromHistory = function(index) {
+        try {
+            const history = JSON.parse(localStorage.getItem(OBF_HISTORY_KEY) || '[]');
+            if (history[index]) {
+                // Convert dataUrl to blob and load
+                fetch(history[index].dataUrl)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        blob.name = history[index].filename || 'history.png';
+                        loadFile(blob);
+                        showToast('已加载历史图片', 'success');
+                    });
+            }
+        } catch (e) { console.error(e); }
+    };
+    
+    function clearObfHistory() {
+        localStorage.removeItem(OBF_HISTORY_KEY);
+        renderObfHistory();
+        showToast('历史已清空', 'success');
+    }
+    
+    // Init history on load
+    document.addEventListener('DOMContentLoaded', renderObfHistory);
+
+    /* --- SAVING/ACTIONS --- */
+    // Helper to download
+    function downloadBlob(b, n) { const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href=u; a.download=n; document.body.appendChild(a); a.click(); a.remove(); }
+    
+    // --- SAVE LOGIC ---
+    function saveMetadata() {
+        if (!fileBuffer) return;
+        
+        if (fileFormat === 'png') {
+            // Reconstruct Metadata Object
+            let cObj = pngCommentObj ? { ...pngCommentObj } : {};
+            
+            // SD Mode
+            if (isSD) {
+                const getVal = (id) => document.getElementById(id).value;
+                if(getVal('fieldPrompt')) cObj["prompt"] = getVal('fieldPrompt');
+                if(getVal('fieldNegative')) cObj["negative_prompt"] = getVal('fieldNegative');
+                updateNum(cObj, 'Steps', getVal('fieldSteps'));
+                updateNum(cObj, 'CFG scale', getVal('fieldCfg'));
+                updateNum(cObj, 'Seed', getVal('fieldSeed'));
+                if (getVal('fieldNoise')) cObj["Sampler"] = getVal('fieldNoise'); else delete cObj["Sampler"];
+                
+                // Rebuild Parameters String
+                let out = cObj["prompt"] + "\nNegative prompt: " + cObj["negative_prompt"] + "\n";
+                const skip = ["prompt", "negative_prompt"]; let params = [];
+                Object.keys(cObj).forEach(k => { if (!skip.includes(k) && cObj[k] !== null) params.push(`${k}: ${cObj[k]}`); });
+                out += params.join(", ");
+                
+                const blob = insertPngChunks(fileBuffer, { "parameters": out });
+                downloadBlob(blob, "meta_edited.png");
+                showToast(getT('toastSaved'), 'success');
+            } else {
+                // NAI Mode (Generic)
+                const getVal = (id) => document.getElementById(id).value;
+                if(getVal('fieldPrompt')) cObj.prompt = getVal('fieldPrompt');
+                if(getVal('fieldNegative')) cObj.uc = getVal('fieldNegative');
+                updateNum(cObj, 'steps', getVal('fieldSteps'));
+                updateNum(cObj, 'cfg_rescale', getVal('fieldCfg'));
+                updateNum(cObj, 'seed', getVal('fieldSeed'));
+                updateNum(cObj, 'n_samples', getVal('fieldNSamples'));
+                if (getVal('fieldNoise')) cObj.noise_schedule = getVal('fieldNoise'); else delete cObj.noise_schedule;
+                if (getVal('fieldComment')) cObj.comment = getVal('fieldComment'); else delete cObj.comment;
+                
+                // Rebuild chars
+                let newPosChars = [], newNegChars = [];
+                document.querySelectorAll('.char-item').forEach(item => {
+                  const txt = item.querySelector('.char-text').value, uc = item.querySelector('.char-uc-area').value;
+                  const x = parseFloat(item.querySelector('.char-x').value) || 0, y = parseFloat(item.querySelector('.char-y').value) || 0;
+                  const centers = [{ x, y }]; 
+                  if(txt) newPosChars.push({ char_caption: txt, centers }); 
+                  if(uc) newNegChars.push({ char_caption: uc, centers });
+                });
+                
+                if (cObj.v4_prompt) { 
+                    if (!cObj.v4_prompt.caption) cObj.v4_prompt.caption = {}; 
+                    if (getVal('fieldPrompt')) cObj.v4_prompt.caption.base_caption = getVal('fieldPrompt'); 
+                    if (newPosChars.length) cObj.v4_prompt.caption.char_captions = newPosChars; 
+                    else delete cObj.v4_prompt.caption.char_captions; 
+                }
+                if (cObj.v4_negative_prompt) { 
+                     if (!cObj.v4_negative_prompt.caption) cObj.v4_negative_prompt.caption = {}; 
+                     if (getVal('fieldNegative')) cObj.v4_negative_prompt.caption.base_caption = getVal('fieldNegative'); 
+                     if (newNegChars.length) cObj.v4_negative_prompt.caption.char_captions = newNegChars; 
+                     else delete cObj.v4_negative_prompt.caption.char_captions; 
+                }
+                
+                let finalC = JSON.stringify(cObj);
+                const blob = insertPngChunks(fileBuffer, { 
+                    "Title": getVal('fieldTitle'),
+                    "Description": getVal('fieldPrompt'),
+                    "Software": getVal('fieldSoftware'),
+                    "Source": getVal('fieldSource'),
+                    "Comment": finalC
+                });
+                downloadBlob(blob, "meta_edited.png");
+                showToast(getT('toastSaved'), 'success');
+            }
+        } else if (fileFormat === 'jpeg') {
+            // JPEG Save
+            try {
+                // Load existing or create new
+                let dumpObj = { "0th":{}, "Exif":{}, "GPS":{}, "1st":{}, "thumbnail":null };
+                // We rely on 'pngCommentObj' as the source for the UserComment in Jpeg too, 
+                // if we edited the AI fields.
+                
+                // But for now, let's just update the UserComment if we have one
+                // TODO: Full sync between EXIF and Metadata Tab is complex, 
+                // here we just save the Metadata Tab content back to UserComment.
+                
+                // Re-read file to binary string for piexif
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const binStr = e.target.result;
+                    try {
+                        const piexifObj = piexif.load(binStr);
+                        
+                        // Construct UserComment
+                        let outStr = "";
+                        if (isSD) {
+                             const getVal = (id) => document.getElementById(id).value;
+                             let p = getVal('fieldPrompt') || "";
+                             let n = getVal('fieldNegative') || "";
+                             let s = getVal('fieldSteps') || "";
+                             outStr = p + "\nNegative prompt: " + n + "\nSteps: " + s; // Simplified rebuild
+                        } else {
+                             outStr = JSON.stringify(pngCommentObj || {});
+                        }
+                        
+                        piexifObj["Exif"][piexif.ExifIFD.UserComment] = [
+                            85, 78, 73, 67, 79, 68, 69, 0, // UNICODE\0
+                            ...outStr.split('').map(c => c.charCodeAt(0))
+                        ];
+
+                        const newBytes = piexif.dump(piexifObj);
+                        const newBin = piexif.insert(newBytes, binStr);
+                        // Binary String to Blob
+                        const arr = new Uint8Array(newBin.length);
+                        for(let i=0; i<newBin.length; i++) arr[i] = newBin.charCodeAt(i);
+                        downloadBlob(new Blob([arr], {type: "image/jpeg"}), "meta_edited.jpg");
+                        showToast(getT('toastSaved'), 'success');
+                    } catch(err) { console.error(err); showToast("JPEG Error", "error"); }
+                };
+                reader.readAsBinaryString(new Blob([fileBuffer]));
+            } catch(e) { showToast("JPEG Error", "error"); }
+        }
+    }
+
+    function updateNum(o, k, v) { if (v === '') delete o[k]; else o[k] = isNaN(Number(v)) ? v : Number(v); }
+
+    // PNG Utils
+    const CRC_TABLE = new Uint32Array(256); for (let i = 0; i < 256; i++) { let c = i; for (let j = 0; j < 8; j++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1); CRC_TABLE[i] = c >>> 0; }
+    function crc32(buf) { let c = 0xffffffff; for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+    
+    function makePngITXt(k, v) { 
+        const enc = new TextEncoder(); 
+        const kBytes = new Uint8Array([...k].map(c => c.charCodeAt(0))); 
+        const vBytes = enc.encode(v); 
+        const headLen = kBytes.length + 5; 
+        const chunk = new Uint8Array(4 + 4 + headLen + vBytes.length + 4); 
+        const view = new DataView(chunk.buffer); 
+        view.setUint32(0, headLen + vBytes.length); 
+        chunk.set([0x69, 0x54, 0x58, 0x74], 4); 
+        chunk.set(kBytes, 8); 
+        for (let i = 0; i < 5; i++) chunk[8 + kBytes.length + i] = 0; 
+        chunk.set(vBytes, 8 + headLen); 
+        view.setUint32(chunk.length - 4, crc32(chunk.slice(4, chunk.length - 4))); 
+        return chunk; 
+    }
+    
+    function insertPngChunks(buffer, map) { 
+        const bytes = new Uint8Array(buffer); 
+        const view = new DataView(buffer); 
+        const latin1Dec = new TextDecoder('latin1'); 
+        const parts = []; 
+        const skipKeys = new Set(Object.keys(map)); 
+        parts.push(bytes.slice(0, 8)); 
+        let pos = 8; 
+        let iend = null; 
+        
+        while (pos + 8 <= bytes.length) { 
+            const len = view.getUint32(pos); 
+            const type = String.fromCharCode(...bytes.slice(pos + 4, pos + 8)); 
+            const end = pos + 8 + len + 4; 
+            const full = bytes.slice(pos, end); 
+            let skip = false; 
+            if (type === 'tEXt' || type === 'iTXt' || type === 'zTXt') { 
+                const data = bytes.slice(pos + 8, pos + 8 + len); 
+                const z = data.indexOf(0); 
+                if (z > -1) { 
+                    const k = latin1Dec.decode(data.slice(0, z)); 
+                    if (skipKeys.has(k)) skip = true; 
+                } 
+            } 
+            if (type === 'IEND') { iend = full; break; } 
+            else if (!skip) parts.push(full); 
+            pos = end; 
+        } 
+        
+        for (const [k, v] of Object.entries(map)) { if (v) parts.push(makePngITXt(k, v)); } 
+        if (iend) parts.push(iend); 
+        
+        let size = 0; parts.forEach(p => size += p.length); 
+        const res = new Uint8Array(size); 
+        let off = 0; 
+        parts.forEach(p => { res.set(p, off); off += p.length; }); 
+        return new Blob([res], { type: 'image/png' }); 
+    }
+    
+    function saveExif() {
+       if (fileFormat !== 'jpeg') { showToast("Only JPEG supports EXIF", "normal"); return; }
+       
+       const reader = new FileReader();
+       reader.onload = function(e) {
+           const binStr = e.target.result;
+           try {
+             let piexifObj = piexif.load(binStr);
+             piexifObj["0th"] = piexifObj["0th"] || {};
+             piexifObj["Exif"] = piexifObj["Exif"] || {};
+             piexifObj["GPS"] = piexifObj["GPS"] || {};
+             const set = (l, t, v) => { if (v) l[t] = v; else delete l[t]; };
+             
+             set(piexifObj["0th"], piexif.ImageIFD.Make, document.getElementById('exifMake').value);
+             set(piexifObj["0th"], piexif.ImageIFD.Model, document.getElementById('exifModel').value);
+             set(piexifObj["0th"], piexif.ImageIFD.Software, document.getElementById('exifSoftware').value);
+             set(piexifObj["0th"], piexif.ImageIFD.DateTime, document.getElementById('exifDateTime').value);
+             
+             const exposure = parseRational(document.getElementById('exifExposure').value, 1000000);
+             if (exposure) piexifObj["Exif"][piexif.ExifIFD.ExposureTime] = exposure; else delete piexifObj["Exif"][piexif.ExifIFD.ExposureTime];
+             const fnumVal = parseFloat(document.getElementById('exifFNumber').value);
+             if (!isNaN(fnumVal)) piexifObj["Exif"][piexif.ExifIFD.FNumber] = [Math.round(fnumVal * 10), 10]; else delete piexifObj["Exif"][piexif.ExifIFD.FNumber];
+             const isoVal = parseInt(document.getElementById('exifISO').value, 10);
+             if (!isNaN(isoVal)) piexifObj["Exif"][piexif.ExifIFD.ISOSpeedRatings] = isoVal; else delete piexifObj["Exif"][piexif.ExifIFD.ISOSpeedRatings];
+             const focalVal = parseFloat(document.getElementById('exifFocal').value);
+             if (!isNaN(focalVal)) piexifObj["Exif"][piexif.ExifIFD.FocalLength] = [Math.round(focalVal * 10), 10]; else delete piexifObj["Exif"][piexif.ExifIFD.FocalLength];
+             const uc = document.getElementById('exifUserComment').value;
+             if (uc) {
+               piexifObj["Exif"][piexif.ExifIFD.UserComment] = [85, 78, 73, 67, 79, 68, 69, 0, ...uc.split('').map(c => c.charCodeAt(0))];
+             } else {
+               delete piexifObj["Exif"][piexif.ExifIFD.UserComment];
+             }
+             
+             const lat = parseFloat(document.getElementById('exifLat').value);
+             const lon = parseFloat(document.getElementById('exifLong').value);
+             if (!isNaN(lat) && !isNaN(lon)) {
+                piexifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = lat >= 0 ? "N" : "S";
+                piexifObj["GPS"][piexif.GPSIFD.GPSLatitude] = degToDmsRational(lat);
+                piexifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = lon >= 0 ? "E" : "W";
+                piexifObj["GPS"][piexif.GPSIFD.GPSLongitude] = degToDmsRational(lon);
+             } else {
+                delete piexifObj["GPS"][piexif.GPSIFD.GPSLatitude];
+                delete piexifObj["GPS"][piexif.GPSIFD.GPSLongitude];
+             }
+             const altVal = parseFloat(document.getElementById('exifAlt').value);
+             if (!isNaN(altVal)) {
+                piexifObj["GPS"][piexif.GPSIFD.GPSAltitudeRef] = altVal >= 0 ? 0 : 1;
+                piexifObj["GPS"][piexif.GPSIFD.GPSAltitude] = [Math.abs(Math.round(altVal * 100)), 100];
+             } else {
+                delete piexifObj["GPS"][piexif.GPSIFD.GPSAltitude];
+             }
+             
+             const newBytes = piexif.dump(piexifObj);
+             const newBin = piexif.insert(newBytes, binStr);
+             const arr = new Uint8Array(newBin.length);
+             for(let i=0; i<newBin.length; i++) arr[i] = newBin.charCodeAt(i);
+             downloadBlob(new Blob([arr], {type: "image/jpeg"}), "exif_edited.jpg");
+             showToast(getT('toastExifSaved'), 'success');
+           } catch(err) { console.error(err); showToast("JPEG Error", "error"); }
+       };
+       reader.readAsBinaryString(new Blob([fileBuffer]));
+    }
+
+    function blobToDataURL(blob) { return new Promise(r => {const fr=new FileReader(); fr.onload=e=>r(e.target.result); fr.readAsDataURL(blob);}); }
+
+    // Init
+    changeLanguage('zh-CN');
+    
+    // NAI Character Utils
+    document.getElementById('btnAddChar').addEventListener('click', () => {
+         addCharToUI("", "", 0.5, 0.5);
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
