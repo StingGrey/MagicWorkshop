@@ -1,0 +1,77 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   🌈 ANIMATIONS & ORB BACKGROUND
+═══════════════════════════════════════════════════════════════════════════ */
+
+.orb-container {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.7;
+  will-change: transform;
+}
+
+.orb-1 {
+  width: 500px; height: 500px;
+  background: var(--orb-1);
+  top: -150px; right: -100px;
+  animation: orbFloat1 20s ease-in-out infinite;
+}
+
+.orb-2 {
+  width: 450px; height: 450px;
+  background: var(--orb-2);
+  bottom: -100px; left: -80px;
+  animation: orbFloat2 25s ease-in-out infinite;
+}
+
+.orb-3 {
+  width: 600px; height: 600px;
+  background: var(--orb-3);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: orbFloat3 18s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 30px) scale(1.1); }
+  66% { transform: translate(20px, -20px) scale(0.95); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -40px) scale(1.15); }
+}
+
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  50% { transform: translate(-50%, -50%) scale(1.1) rotate(45deg); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>✨ Magic Workshop 魔法工坊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <!-- Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&family=Inter:wght@400;600&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <!-- 🌈 Dynamic Orb Background -->
+  <div class="orb-container">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app-wrap">
+
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand">
+        <h1>
+          <span>✨</span>
+          <span data-i18n="appTitle">Magic Workshop</span>
+          <span class="version-badge">V2.0</span>
+        </h1>
+      </div>
+      <div class="header-controls">
+        <select class="lang-select" id="langSelect" title="Language" onchange="changeLanguage(this.value)">
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </select>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="main-grid">
+
+      <!-- LEFT PANEL: SOURCE IMAGE -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div class="card-title" data-i18n="cardLeftTitle">Source</div>
+          <div class="card-sub" data-i18n="cardLeftSub">DRAG & DROP</div>
+        </div>
+
+        <label class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+          <div class="drop-text" style="position:relative; z-index:1;">
+            <span class="drop-icon">📤</span>
+            <strong data-i18n="dropTitle">Drop File Here</strong>
+            <span data-i18n="dropSub" style="font-size: 13px; color: var(--text-muted); margin-top:4px; display:block;">PNG / JPG / WebP</span>
+          </div>
+        </label>
+
+        <div class="preview-box">
+          <img id="preview" alt="Preview" style="display:none;" />
+          <canvas id="workCanvas" style="display:none;"></canvas>
+          <div id="previewPlaceholder" style="color:var(--text-muted); font-size:14px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+            <span style="font-size:32px;">🖼️</span>
+            <span data-i18n="previewEmpty">No image selected</span>
+          </div>
+        </div>
+
+        <div class="file-info">
+          <div id="fileInfoText"></div>
+          <div id="fileTypeBadge" style="display:none; font-size:10px; background: var(--gradient-primary); color:#fff; padding:4px 12px; border-radius:var(--radius-full); margin-top:6px; font-weight:700;"></div>
+        </div>
+
+        <!-- Reload Button (Hidden by default) -->
+        <button id="btnReloadObf" class="btn btn-primary" onclick="reloadFromCanvas()" style="display:none; margin-top:10px; width:100%;">
+          <span data-i18n="btnReload">🔄 Use Obfuscated Result</span>
+        </button>
+      </section>
+
+      <!-- RIGHT PANEL: TOOLBOX -->
+      <section class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title" data-i18n="cardRightTitle">Toolbox</div>
+            <div class="card-sub" data-i18n="cardRightSub">SELECT SPELL</div>
+          </div>
+          <!-- TABS with sliding indicator -->
+          <div class="mode-tabs" id="modeTabs">
+            <div class="tab-slider" id="tabSlider"></div>
+            <button class="mode-tab active" onclick="switchTab('meta')" data-i18n="tabMeta">✨ Meta</button>
+            <button class="mode-tab" onclick="switchTab('info')" data-i18n="tabInfo">📋 Info</button>
+            <button class="mode-tab" onclick="switchTab('exif')" data-i18n="tabExif">📍 GPS</button>
+            <button class="mode-tab" data-mode="obf" onclick="switchTab('obf')" data-i18n="tabObf">🔒 Lock</button>
+          </div>
+        </div>
+
+        <!-- FORM: METADATA -->
+        <div id="formMeta" class="form-container active">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="field">
+              <label data-i18n="fieldTitle">Title</label>
+              <input id="fieldTitle" type="text" placeholder="Image Title" data-i18n-ph="phTitle" />
+            </div>
+            <div class="field">
+              <div style="display:flex; justify-content:space-between;">
+                <label data-i18n="fieldPrompt">Prompt</label>
+                <button id="btnToggleActual" onclick="toggleActualPrompt()" style="font-size:10px; padding:2px 6px; border:1px solid var(--accent); background:none; color:var(--accent); border-radius:4px; cursor:pointer; display:none;" data-i18n="btnActualPrompt">Original</button>
+              </div>
+              <textarea id="fieldPrompt" rows="4" placeholder="Masterpiece, best quality..." data-i18n-ph="phPrompt"></textarea>
+            </div>
+
+            <div class="field" style="background:rgba(255,255,255,0.4); padding: 10px; border-radius: 15px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <label data-i18n="charTitle">Characters (NAI)</label>
+              </div>
+              <div id="charList"></div>
+              <button id="btnAddChar" class="btn-add-char" data-i18n="btnAddChar">＋ Add Chara</button>
+            </div>
+
+            <div class="field">
+              <label data-i18n="fieldNegative">Negative Prompt</label>
+              <textarea id="fieldNegative" placeholder="low quality..." data-i18n-ph="phNegative" style="min-height: 60px;"></textarea>
+            </div>
+
+            <div class="grid-3">
+              <div class="field"><label>Steps</label><input id="fieldSteps" type="text" placeholder="28" /></div>
+              <div class="field"><label>CFG</label><input id="fieldCfg" type="text" placeholder="7.0" /></div>
+              <div class="field"><label>Seed</label><input id="fieldSeed" type="text" /></div>
+            </div>
+            <div class="grid-3">
+              <div class="field"><label>Sampler</label><input id="fieldNoise" type="text" placeholder="native" /></div>
+              <div class="field"><label>Soft</label><input id="fieldSoftware" type="text" placeholder="NovelAI" /></div>
+              <div class="field"><label>Source</label><input id="fieldSource" type="text" placeholder="SD..." /></div>
+            </div>
+            <div class="field">
+              <label data-i18n="fieldComment">Comment / Note</label>
+              <input id="fieldComment" type="text" placeholder="Extra notes" data-i18n-ph="phComment" />
+            </div>
+            <input id="fieldNSamples" type="hidden" />
+
+            <!-- Raw Data Section -->
+            <div class="raw-section">
+              <button class="raw-toggle-btn" onclick="toggleRawData()">
+                <span data-i18n="rawTitle">📜 View Raw Json</span>
+                <span id="rawArrow">&#x25BC;</span>
+              </button>
+              <div class="raw-container" id="rawContainer">
+                <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                  <button id="btnRawEdit" onclick="toggleRawEdit()" style="background:#444; color:#fff; border:none; padding:4px 10px; border-radius:5px; cursor:pointer;">Edit</button>
+                  <button id="btnRawSave" onclick="saveRawData()" style="display:none; background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:5px; cursor:pointer; margin-left:5px;">Save</button>
+                </div>
+                <div id="treeView"></div>
+                <textarea id="rawEditor" style="width:100%; height:300px; background:transparent; color:#fff; border:none; display:none;"></textarea>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+              <button id="btnApplyMeta" class="btn btn-primary" disabled>
+                <span data-i18n="btnSaveMeta">✨ Save Metadata</span>
+              </button>
+              <button id="btnClearMeta" class="btn btn-ghost" disabled>
+                <span data-i18n="btnClearMeta">🧹 Clear AI Info</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM: EXIF -->
+        <div id="formExif" class="form-container">
+           <div style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- GPS Section -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);"><span style="margin-right:4px">📍</span><span data-i18n="gpsTitle">GPS</span></label>
+              <div class="grid-3">
+                <div class="field"><label>Lat</label><input id="exifLat" type="number" step="0.0001" placeholder="35.6" /></div>
+                <div class="field"><label>Lon</label><input id="exifLong" type="number" step="0.0001" placeholder="139.6" /></div>
+                <div class="field"><label>Alt</label><input id="exifAlt" type="number" step="0.1" placeholder="10m" /></div>
+              </div>
+            </div>
+
+            <!-- Camera Info -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifCamera">📷 Camera Info</label>
+              <div class="grid-2">
+                <div class="field"><label>Make</label><input id="exifMake" type="text" placeholder="Canon" /></div>
+                <div class="field"><label>Model</label><input id="exifModel" type="text" placeholder="EOS R5" /></div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>LensModel</label><input id="exifLensModel" type="text" placeholder="24-70mm" /></div>
+                <div class="field"><label>LensMake</label><input id="exifLensMake" type="text" placeholder="Canon" /></div>
+              </div>
+              <div class="field"><label>Software</label><input id="exifSoftware" type="text" /></div>
+            </div>
+
+            <!-- DateTime -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifTime">📅 Time</label>
+              <div class="grid-2" style="margin-top:8px;">
+                <div class="field">
+                  <label style="display:flex; justify-content:space-between; align-items:center;">DateTime <input type="datetime-local" class="date-picker-icon" onchange="applyDateFromPicker(this, 'exifDateTime')"/></label>
+                  <input id="exifDateTime" type="text" placeholder="2024:01:01 12:00:00" style="padding:10px 12px; font-size:12px;" />
+                </div>
+                <div class="field">
+                  <label style="display:flex; justify-content:space-between; align-items:center;">DateTimeOriginal <input type="datetime-local" class="date-picker-icon" onchange="applyDateFromPicker(this, 'exifDateTimeOriginal')"/></label>
+                  <input id="exifDateTimeOriginal" type="text" placeholder="Shot Time" data-i18n-ph="phShotTime" style="padding:10px 12px; font-size:12px;" />
+                </div>
+              </div>
+              <div class="field">
+                <label style="display:flex; justify-content:space-between; align-items:center;">DateTimeDigitized <input type="datetime-local" class="date-picker-icon" onchange="applyDateFromPicker(this, 'exifDateTimeDigitized')"/></label>
+                <input id="exifDateTimeDigitized" type="text" placeholder="Digitized Time" data-i18n-ph="phDigitizedTime" style="padding:10px 12px; font-size:12px;" />
+              </div>
+            </div>
+
+            <!-- Exposure Settings -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifExposure">⚡ Exposure</label>
+              <div class="grid-3">
+                <div class="field"><label>Exposure</label><input id="exifExposure" type="text" placeholder="1/100" /></div>
+                <div class="field"><label>F-Number</label><input id="exifFNumber" type="number" step="0.1" placeholder="2.8" /></div>
+                <div class="field"><label>ISO</label><input id="exifISO" type="number" placeholder="100" /></div>
+              </div>
+              <div class="grid-3">
+                <div class="field"><label>Focal</label><input id="exifFocal" type="number" placeholder="50" /></div>
+                <div class="field"><label>Focal35mm</label><input id="exifFocal35" type="number" placeholder="50" /></div>
+                <div class="field"><label>MaxAperture</label><input id="exifMaxAperture" type="number" step="0.1" placeholder="1.4" /></div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>ExposureBias</label><input id="exifExposureBias" type="text" placeholder="0 EV" /></div>
+                <div class="field"><label>ExposureProgram</label>
+                  <select id="exifExposureProgram">
+                    <option value="">--</option>
+                    <option value="1">Manual</option>
+                    <option value="2">Auto</option>
+                    <option value="3">Aperture Priority</option>
+                    <option value="4">Shutter Priority</option>
+                    <option value="5">Creative</option>
+                    <option value="6">Action</option>
+                    <option value="7">Portrait</option>
+                    <option value="8">Landscape</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>MeteringMode</label>
+                  <select id="exifMeteringMode">
+                    <option value="">--</option>
+                    <option value="1">Average</option>
+                    <option value="2">Center-weighted</option>
+                    <option value="3">Spot</option>
+                    <option value="4">Multi-spot</option>
+                    <option value="5">Pattern</option>
+                    <option value="6">Partial</option>
+                  </select>
+                </div>
+                <div class="field"><label>Flash</label>
+                  <select id="exifFlash">
+                    <option value="">--</option>
+                    <option value="0">No Flash</option>
+                    <option value="1">Fired</option>
+                    <option value="5">Fired, No Return</option>
+                    <option value="7">Fired, Return</option>
+                    <option value="16">Off</option>
+                    <option value="24">Auto, No Fire</option>
+                    <option value="25">Auto, Fired</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Image Settings -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifImgSettings">🎨 Image Settings</label>
+              <div class="grid-3">
+                <div class="field"><label>WhiteBalance</label>
+                  <select id="exifWhiteBalance">
+                    <option value="">--</option>
+                    <option value="0">Auto</option>
+                    <option value="1">Manual</option>
+                  </select>
+                </div>
+                <div class="field"><label>Orientation</label>
+                  <select id="exifOrientation">
+                    <option value="">--</option>
+                    <option value="1">Normal</option>
+                    <option value="3">180°</option>
+                    <option value="6">90° CW</option>
+                    <option value="8">90° CCW</option>
+                  </select>
+                </div>
+                <div class="field"><label>ColorSpace</label>
+                  <select id="exifColorSpace">
+                    <option value="">--</option>
+                    <option value="1">sRGB</option>
+                    <option value="2">Adobe RGB</option>
+                    <option value="65535">Uncalibrated</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-3">
+                <div class="field"><label>Sharpness</label>
+                  <select id="exifSharpness">
+                    <option value="">--</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Soft</option>
+                    <option value="2">Hard</option>
+                  </select>
+                </div>
+                <div class="field"><label>Saturation</label>
+                  <select id="exifSaturation">
+                    <option value="">--</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Low</option>
+                    <option value="2">High</option>
+                  </select>
+                </div>
+                <div class="field"><label>Contrast</label>
+                  <select id="exifContrast">
+                    <option value="">--</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Low</option>
+                    <option value="2">High</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field"><label>SceneCaptureType</label>
+                  <select id="exifSceneType">
+                    <option value="">--</option>
+                    <option value="0">Standard</option>
+                    <option value="1">Landscape</option>
+                    <option value="2">Portrait</option>
+                    <option value="3">Night Scene</option>
+                  </select>
+                </div>
+                <div class="field"><label>SubjectDistance</label><input id="exifSubjectDistance" type="text" placeholder="m" /></div>
+              </div>
+            </div>
+
+            <!-- Author Info -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifAuthor">👤 Author</label>
+              <div class="grid-2">
+                <div class="field"><label>Artist</label><input id="exifArtist" type="text" placeholder="Artist" data-i18n-ph="phArtist" /></div>
+                <div class="field"><label>Copyright</label><input id="exifCopyright" type="text" placeholder="© 2024" data-i18n-ph="phCopyright" /></div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="field" style="background: var(--input-bg); padding:10px; border-radius:15px;">
+              <label style="color:var(--accent-pink);" data-i18n="exifDesc">📝 Description</label>
+              <div class="field"><label>ImageDescription</label><input id="exifDescription" type="text" placeholder="Description" data-i18n-ph="phImageDesc" /></div>
+              <div class="field"><label>UserComment</label><textarea id="exifUserComment" style="min-height:60px;"></textarea></div>
+            </div>
+
+             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+              <button id="btnApplyExif" class="btn btn-primary" disabled><span data-i18n="btnSaveExif">📸 Save EXIF</span></button>
+              <button id="btnClearExif" class="btn btn-ghost" disabled><span data-i18n="btnClearExif">🛡️ Clean EXIF</span></button>
+              <button id="btnClearAll" class="btn btn-danger" disabled><span data-i18n="btnNuke">🧨 Nuke ALL Info</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM: OBFUSCATION -->
+        <div id="formObf" class="form-container">
+          <div style="text-align:center; margin-bottom:20px; color:var(--obf-accent);">
+            <p style="font-size:13px; font-weight:700;" data-i18n="obfDesc">Gilbert Curve Pixel Scrambling</p>
+          </div>
+
+          <!-- Auto Process Mode - Animated Segment Control -->
+          <div style="margin-bottom:16px;">
+            <div style="font-size:10px; font-weight:700; color:var(--text-muted); text-align:center; margin-bottom:6px;" data-i18n="obfAutoProcess">🚀 Auto Process</div>
+
+            <div class="seg-container">
+              <input type="radio" name="autoObf" id="segOff" value="off" checked>
+              <input type="radio" name="autoObf" id="segEnc" value="encrypt">
+              <input type="radio" name="autoObf" id="segDec" value="decrypt">
+
+              <div class="seg-labels">
+                <label for="segOff" class="seg-item">
+                  <span class="seg-icon">⭕</span> <span data-i18n="segOff">Off</span>
+                </label>
+                <label for="segEnc" class="seg-item">
+                  <span class="seg-icon">🔒</span> <span data-i18n="segEnc">Scramble</span>
+                </label>
+                <label for="segDec" class="seg-item">
+                  <span class="seg-icon">🔓</span> <span data-i18n="segDec">Restore</span>
+                </label>
+                <div class="seg-glider"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label data-i18n="obfPassword">Magic Password (Optional)</label>
+            <div class="password-wrapper">
+              <input id="obfPass" type="password" placeholder="***" />
+              <span class="password-lock-icon">🔒</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" data-i18n="obfNote">Same password needed to restore!</div>
+          </div>
+
+          <div class="grid-2">
+             <button id="btnEncrypt" class="btn btn-obf" disabled onclick="runObfuscation(true)">
+               <span>🔒 <span data-i18n="btnEncrypt">Scramble</span></span>
+             </button>
+             <button id="btnDecrypt" class="btn btn-obf" disabled onclick="runObfuscation(false)" style="filter: hue-rotate(40deg);">
+               <span>🔓 <span data-i18n="btnDecrypt">Restore</span></span>
+             </button>
+          </div>
+
+          <div class="obf-status" id="obfStatus"></div>
+
+          <div style="margin-top:20px; border-top:2px dashed var(--border-input); padding-top:20px;">
+            <button id="btnSaveObf" class="btn btn-ghost" style="width:100%;" disabled onclick="saveObfuscated()">
+              <span data-i18n="btnSaveObf">💾 Save Result Image</span>
+            </button>
+          </div>
+
+          <!-- Recent Deobfuscated History -->
+          <div style="margin-top:20px; border-top:2px dashed var(--border-input); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span style="font-weight:700; font-size:12px; color:var(--accent-purple);">📜 最近解混淆记录</span>
+              <button onclick="clearObfHistory()" style="font-size:10px; background:none; border:1px solid var(--border-input); border-radius:var(--radius-full); padding:4px 10px; cursor:pointer; color:var(--text-muted);">清空</button>
+            </div>
+            <div id="obfHistory" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap:8px; max-height:150px; overflow-y:auto;">
+              <div style="text-align:center; color:var(--text-muted); font-size:11px; padding:20px 0; grid-column: 1/-1;">暂无记录</div>
+            </div>
+          </div>
+          </div>
+
+
+        <!-- FORM: INFO (Complete Inspector) -->
+        <div id="formInfo" class="form-container">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+
+            <!-- Info Header -->
+            <div style="text-align:center; padding:12px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border-radius: var(--radius-lg);">
+              <p style="font-size:14px; font-weight:700; color: var(--accent-purple);" data-i18n="infoDesc">📊 Complete Image Inspector</p>
+              <p style="font-size:11px; color: var(--text-muted); margin-top:4px;">Based on <a href="https://github.com/Akegarasu/stable-diffusion-inspector" target="_blank" rel="noopener" style="color: var(--accent-pink); text-decoration:underline;">stable-diffusion-inspector</a> by @Akegarasu | 秋葉aaaki</p>
+            </div>
+
+            <!-- File Info Section -->
+            <div class="info-section" id="infoFileSection">
+              <div class="info-section-title" data-i18n="infoFileTitle">📁 File Info</div>
+              <div id="infoFileContent" class="info-content">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+
+            <!-- Generation Info Section -->
+            <div class="info-section" id="infoGenSection">
+              <div class="info-section-title" data-i18n="infoGenTitle">🎨 Generation Info</div>
+              <div id="infoGenContent" class="info-content">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+
+            <!-- Full Parameters Section -->
+            <div class="info-section" id="infoFullSection">
+              <div class="info-section-title" data-i18n="infoFullTitle">📜 Full Parameters</div>
+              <div id="infoFullContent" class="info-content" style="max-height: 300px; overflow-y: auto;">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+
+            <!-- EXIF Section -->
+            <div class="info-section" id="infoExifSection">
+              <div class="info-section-title" data-i18n="infoExifTitle">📷 EXIF Data</div>
+              <div id="infoExifContent" class="info-content" style="max-height: 250px; overflow-y: auto;">
+                <div class="info-empty" data-i18n="infoEmpty">Upload an image to view info</div>
+              </div>
+            </div>
+
+            <!-- Copy All Button -->
+            <button id="btnCopyAll" class="btn btn-ghost" style="width:100%;" disabled onclick="copyAllInfo()">
+              <span data-i18n="btnCopyAll">📋 Copy All Info</span>
+            </button>
+
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <footer class="app-footer">
+      Magic Workshop V2.0 (Kawaii Edition) · Antigravity AI
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"><span id="toastIcon">✨</span> <span id="toastMsg">Message</span></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
