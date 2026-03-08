@@ -1,32 +1,48 @@
 /* UI: Tabs and Theme */
 
+let currentTab = 'meta';
+
 export function switchTab(mode) {
+  if (mode === currentTab) return;
+
   const tabs = document.querySelectorAll('.mode-tab');
   const slider = document.getElementById('tabSlider');
+  const forms = document.querySelectorAll('.form-container');
 
+  // Deactivate old
   tabs.forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+  forms.forEach(f => f.classList.remove('active'));
 
   let activeTab = null;
   let isObf = false;
 
-  if (mode === 'meta') { activeTab = tabs[0]; document.getElementById('formMeta').classList.add('active'); }
-  if (mode === 'info') { activeTab = tabs[1]; document.getElementById('formInfo').classList.add('active'); }
-  if (mode === 'exif') { activeTab = tabs[2]; document.getElementById('formExif').classList.add('active'); }
-  if (mode === 'obf') { activeTab = tabs[3]; document.getElementById('formObf').classList.add('active'); isObf = true; }
+  if (mode === 'meta') { activeTab = tabs[0]; }
+  if (mode === 'info') { activeTab = tabs[1]; }
+  if (mode === 'exif') { activeTab = tabs[2]; }
+  if (mode === 'obf')  { activeTab = tabs[3]; isObf = true; }
 
   if (activeTab) {
     activeTab.classList.add('active');
+
+    // Move slider
     if (slider) {
       const tabsContainer = document.getElementById('modeTabs');
       const containerRect = tabsContainer.getBoundingClientRect();
       const tabRect = activeTab.getBoundingClientRect();
       slider.style.width = tabRect.width + 'px';
       slider.style.left = (tabRect.left - containerRect.left) + 'px';
-      if (isObf) slider.classList.add('obf');
-      else slider.classList.remove('obf');
+      slider.classList.toggle('obf', isObf);
     }
+
+    // Activate new form with slight delay for scale+blur effect
+    requestAnimationFrame(() => {
+      const formMap = { meta: 'formMeta', info: 'formInfo', exif: 'formExif', obf: 'formObf' };
+      const target = document.getElementById(formMap[mode]);
+      if (target) target.classList.add('active');
+    });
   }
+
+  currentTab = mode;
 }
 
 export function initTabSlider() {

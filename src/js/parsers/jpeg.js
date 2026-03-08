@@ -1,30 +1,9 @@
 /* JPEG EXIF parsing and writing */
 import piexif from 'piexifjs';
-import { setFieldVal, dmsRationalToDeg } from '../utils.js';
+import { setFieldVal, dmsRationalToDeg, downloadBlob, binaryStringToUint8Array, readBufferAsBinaryString } from '../utils.js';
+import { EXIF_UNICODE_HEADER } from '../state.js';
 
 export { piexif };
-
-export function JPEG_SD_UserComment_V2(ex) {
-  if (!ex || !ex["Exif"]) return null;
-  const uc = ex["Exif"][piexif.ExifIFD.UserComment];
-  if (!uc) return null;
-  let str = "";
-  if (Array.isArray(uc)) {
-    let start = 0;
-    if (uc.length >= 8 && uc.slice(0, 8).map(c => String.fromCharCode(c)).join("").match(/^(UNICODE|ASCII)/)) start = 8;
-    str = uc.slice(start).filter(c => c !== 0).map(c => String.fromCharCode(c)).join("");
-  } else if (typeof uc === 'string') {
-    str = uc.replace(/^(UNICODE|ASCII)\0+/, '');
-  }
-  str = str.replace(/\0/g, '').trim();
-  if (!str) return null;
-  try {
-    const j = JSON.parse(str);
-    if (j && typeof j === 'object') return { obj: j, raw: j };
-  } catch (e) { }
-  if (str.includes("Steps:") || (str.toLowerCase().includes("prompt") && str.toLowerCase().includes("negative"))) return str;
-  return null;
-}
 
 export function decodeExifUserComment(uc) {
   if (!uc) return "";
@@ -37,6 +16,31 @@ export function decodeExifUserComment(uc) {
     str = uc.replace(/^(UNICODE|ASCII)\0+/, '');
   }
   return str.replace(/\0/g, '').trim();
+}
+
+export function JPEG_SD_UserComment_V2(ex) {
+  if (!ex || !ex["Exif"]) return null;
+  const str = decodeExifUserComment(ex["Exif"][piexif.ExifIFD.UserComment]);
+  if (!str) return null;
+  try {
+    const j = JSON.parse(str);
+    if (j && typeof j === 'object') return { obj: j, raw: j };
+  } catch (e) { }
+  if (str.includes("Steps:") || (str.toLowerCase().includes("prompt") && str.toLowerCase().includes("negative"))) return str;
+  return null;
+}
+
+export function encodeUserComment(str) {
+  return [...EXIF_UNICODE_HEADER, ...str.split('').map(c => c.charCodeAt(0))];
+}
+
+export async function writeJpegWithExif(buffer, modifyFn, filename) {
+  const binStr = await readBufferAsBinaryString(buffer);
+  const piexifObj = piexif.load(binStr);
+  modifyFn(piexifObj);
+  const newBytes = piexif.dump(piexifObj);
+  const newBin = piexif.insert(newBytes, binStr);
+  downloadBlob(new Blob([binaryStringToUint8Array(newBin)], { type: "image/jpeg" }), filename);
 }
 
 export function loadJpegExifData(piexifObj) {

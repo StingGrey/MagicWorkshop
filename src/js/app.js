@@ -3,7 +3,7 @@
    Wires all modules together and sets up event listeners
 ═══════════════════════════════════════════════════════════════════════════ */
 
-import { state } from './state.js';
+import { state, META_FIELD_IDS } from './state.js';
 import { changeLanguage, getT } from './i18n.js';
 import { showToast, blobToDataURL } from './utils.js';
 import { parsePngText } from './parsers/png.js';
@@ -74,7 +74,7 @@ window._loadFile = loadFile;
 /* --- METADATA PARSING --- */
 async function parseMetadata(bytes) {
   // Reset Form
-  ['fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg', 'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'].forEach(id => document.getElementById(id).value = '');
+  META_FIELD_IDS.forEach(id => document.getElementById(id).value = '');
   document.getElementById('charList').innerHTML = '';
   document.getElementById('treeView').innerHTML = '';
   document.getElementById('rawEditor').value = '';

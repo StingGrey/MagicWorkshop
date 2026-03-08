@@ -1,17 +1,14 @@
 /* EXIF editor logic */
-import { state } from '../state.js';
+import { state, EXIF_FIELD_IDS } from '../state.js';
 import { getT } from '../i18n.js';
-import { showToast, downloadBlob, degToDmsRational, parseRational } from '../utils.js';
-import { piexif } from '../parsers/jpeg.js';
+import { showToast, degToDmsRational, parseRational } from '../utils.js';
+import { piexif, encodeUserComment, writeJpegWithExif } from '../parsers/jpeg.js';
 
-export function saveExif() {
+export async function saveExif() {
   if (state.fileFormat !== 'jpeg') { showToast("Only JPEG supports EXIF", "normal"); return; }
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const binStr = e.target.result;
-    try {
-      let piexifObj = piexif.load(binStr);
+  try {
+    await writeJpegWithExif(state.fileBuffer, (piexifObj) => {
       piexifObj["0th"] = piexifObj["0th"] || {};
       piexifObj["Exif"] = piexifObj["Exif"] || {};
       piexifObj["GPS"] = piexifObj["GPS"] || {};
@@ -32,7 +29,7 @@ export function saveExif() {
       if (!isNaN(focalVal)) piexifObj["Exif"][piexif.ExifIFD.FocalLength] = [Math.round(focalVal * 10), 10]; else delete piexifObj["Exif"][piexif.ExifIFD.FocalLength];
       const uc = document.getElementById('exifUserComment').value;
       if (uc) {
-        piexifObj["Exif"][piexif.ExifIFD.UserComment] = [85, 78, 73, 67, 79, 68, 69, 0, ...uc.split('').map(c => c.charCodeAt(0))];
+        piexifObj["Exif"][piexif.ExifIFD.UserComment] = encodeUserComment(uc);
       } else {
         delete piexifObj["Exif"][piexif.ExifIFD.UserComment];
       }
@@ -55,35 +52,20 @@ export function saveExif() {
       } else {
         delete piexifObj["GPS"][piexif.GPSIFD.GPSAltitude];
       }
-
-      const newBytes = piexif.dump(piexifObj);
-      const newBin = piexif.insert(newBytes, binStr);
-      const arr = new Uint8Array(newBin.length);
-      for (let i = 0; i < newBin.length; i++) arr[i] = newBin.charCodeAt(i);
-      downloadBlob(new Blob([arr], { type: "image/jpeg" }), "exif_edited.jpg");
-      showToast(getT('toastExifSaved'), 'success');
-    } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
-  };
-  reader.readAsBinaryString(new Blob([state.fileBuffer]));
+    }, "exif_edited.jpg");
+    showToast(getT('toastExifSaved'), 'success');
+  } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
 }
 
-export function clearExif() {
+export async function clearExif() {
   if (state.fileFormat !== 'jpeg') { showToast("Only JPEG supports EXIF", "normal"); return; }
-  ['exifMake', 'exifModel', 'exifSoftware', 'exifDateTime', 'exifExposure', 'exifFNumber', 'exifISO', 'exifFocal', 'exifUserComment', 'exifLat', 'exifLong', 'exifAlt'].forEach(id => document.getElementById(id).value = '');
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const binStr = e.target.result;
-    try {
-      const emptyExif = { "0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": null };
-      const newBytes = piexif.dump(emptyExif);
-      const newBin = piexif.insert(newBytes, binStr);
-      const arr = new Uint8Array(newBin.length);
-      for (let i = 0; i < newBin.length; i++) arr[i] = newBin.charCodeAt(i);
-      downloadBlob(new Blob([arr], { type: "image/jpeg" }), "exif_clean.jpg");
-      showToast(getT('toastCleaned'), "success");
-    } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
-  };
-  reader.readAsBinaryString(new Blob([state.fileBuffer]));
+  EXIF_FIELD_IDS.forEach(id => document.getElementById(id).value = '');
+  try {
+    await writeJpegWithExif(state.fileBuffer, (obj) => {
+      obj["0th"] = {}; obj["Exif"] = {}; obj["GPS"] = {}; obj["1st"] = {}; obj["thumbnail"] = null;
+    }, "exif_clean.jpg");
+    showToast(getT('toastCleaned'), "success");
+  } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
 }
 
 export function applyDateFromPicker(picker, fieldId) {

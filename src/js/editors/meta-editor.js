@@ -1,9 +1,9 @@
 /* Metadata editor logic */
-import { state } from '../state.js';
+import { state, META_FIELD_IDS, EXIF_FIELD_IDS } from '../state.js';
 import { getT, refreshDynamicUI } from '../i18n.js';
 import { setFieldVal, pickFirst, showToast, downloadBlob, updateNum } from '../utils.js';
 import { insertPngChunks } from '../parsers/png.js';
-import { piexif } from '../parsers/jpeg.js';
+import { piexif, encodeUserComment, writeJpegWithExif } from '../parsers/jpeg.js';
 import { parseSDString_V2, extractComfyPrompts } from '../parsers/sd-parser.js';
 
 export function extractDataFromObj(obj) {
@@ -201,7 +201,7 @@ export function createJsonTree(data) {
 }
 
 /* --- SAVE METADATA --- */
-export function saveMetadata() {
+export async function saveMetadata() {
   if (!state.fileBuffer) return;
 
   if (state.fileFormat === 'png') {
@@ -270,42 +270,26 @@ export function saveMetadata() {
     }
   } else if (state.fileFormat === 'jpeg') {
     try {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const binStr = e.target.result;
-        try {
-          const piexifObj = piexif.load(binStr);
-          let outStr = "";
-          if (state.isSD) {
-            const getVal = (id) => document.getElementById(id).value;
-            let p = getVal('fieldPrompt') || "";
-            let n = getVal('fieldNegative') || "";
-            let s = getVal('fieldSteps') || "";
-            outStr = p + "\nNegative prompt: " + n + "\nSteps: " + s;
-          } else {
-            outStr = JSON.stringify(state.pngCommentObj || {});
-          }
-
-          piexifObj["Exif"][piexif.ExifIFD.UserComment] = [
-            85, 78, 73, 67, 79, 68, 69, 0,
-            ...outStr.split('').map(c => c.charCodeAt(0))
-          ];
-
-          const newBytes = piexif.dump(piexifObj);
-          const newBin = piexif.insert(newBytes, binStr);
-          const arr = new Uint8Array(newBin.length);
-          for (let i = 0; i < newBin.length; i++) arr[i] = newBin.charCodeAt(i);
-          downloadBlob(new Blob([arr], { type: "image/jpeg" }), "meta_edited.jpg");
-          showToast(getT('toastSaved'), 'success');
-        } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
-      };
-      reader.readAsBinaryString(new Blob([state.fileBuffer]));
-    } catch (e) { showToast("JPEG Error", "error"); }
+      let outStr = "";
+      if (state.isSD) {
+        const getVal = (id) => document.getElementById(id).value;
+        let p = getVal('fieldPrompt') || "";
+        let n = getVal('fieldNegative') || "";
+        let s = getVal('fieldSteps') || "";
+        outStr = p + "\nNegative prompt: " + n + "\nSteps: " + s;
+      } else {
+        outStr = JSON.stringify(state.pngCommentObj || {});
+      }
+      await writeJpegWithExif(state.fileBuffer, (obj) => {
+        obj["Exif"][piexif.ExifIFD.UserComment] = encodeUserComment(outStr);
+      }, "meta_edited.jpg");
+      showToast(getT('toastSaved'), 'success');
+    } catch (e) { console.error(e); showToast("JPEG Error", "error"); }
   }
 }
 
 /* --- CLEAR LOGIC --- */
-export function clearMetaOnly() {
+export async function clearMetaOnly() {
   if (!state.fileBuffer) return;
   showToast("Cleaning...", "normal");
   state.pngCommentObj = null;
@@ -316,7 +300,7 @@ export function clearMetaOnly() {
   state.hasActual = false;
   state.isShowingActual = false;
   document.getElementById('btnToggleActual').style.display = 'none';
-  ['fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg', 'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'].forEach(id => document.getElementById(id).value = '');
+  META_FIELD_IDS.forEach(id => document.getElementById(id).value = '');
   document.getElementById('charList').innerHTML = '';
   document.getElementById('treeView').innerHTML = '';
   document.getElementById('rawEditor').value = '';
@@ -328,22 +312,13 @@ export function clearMetaOnly() {
     return;
   }
   if (state.fileFormat === 'jpeg') {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const binStr = e.target.result;
-      try {
-        const piexifObj = piexif.load(binStr);
-        piexifObj["Exif"] = piexifObj["Exif"] || {};
-        delete piexifObj["Exif"][piexif.ExifIFD.UserComment];
-        const newBytes = piexif.dump(piexifObj);
-        const newBin = piexif.insert(newBytes, binStr);
-        const arr = new Uint8Array(newBin.length);
-        for (let i = 0; i < newBin.length; i++) arr[i] = newBin.charCodeAt(i);
-        downloadBlob(new Blob([arr], { type: "image/jpeg" }), "meta_clean.jpg");
-        showToast(getT('toastCleaned'), "success");
-      } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
-    };
-    reader.readAsBinaryString(new Blob([state.fileBuffer]));
+    try {
+      await writeJpegWithExif(state.fileBuffer, (obj) => {
+        obj["Exif"] = obj["Exif"] || {};
+        delete obj["Exif"][piexif.ExifIFD.UserComment];
+      }, "meta_clean.jpg");
+      showToast(getT('toastCleaned'), "success");
+    } catch (err) { console.error(err); showToast("JPEG Error", "error"); }
   }
 }
 
@@ -353,11 +328,11 @@ export function clearAllData() {
   state.pngCommentObj = null;
   state.originalData = {};
   state.actualData = {};
-  ['fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg', 'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'].forEach(id => document.getElementById(id).value = '');
+  META_FIELD_IDS.forEach(id => document.getElementById(id).value = '');
   document.getElementById('charList').innerHTML = '';
   document.getElementById('treeView').innerHTML = '';
   document.getElementById('rawEditor').value = '';
-  ['exifMake', 'exifModel', 'exifSoftware', 'exifDateTime', 'exifExposure', 'exifFNumber', 'exifISO', 'exifFocal', 'exifUserComment', 'exifLat', 'exifLong', 'exifAlt'].forEach(id => document.getElementById(id).value = '');
+  EXIF_FIELD_IDS.forEach(id => document.getElementById(id).value = '');
 
   const img = new Image();
   img.onload = () => {

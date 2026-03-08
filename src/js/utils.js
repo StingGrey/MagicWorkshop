@@ -126,6 +126,22 @@ export function parseRational(val, scale = 1000000) {
   return null;
 }
 
+// --- Binary String Helpers ---
+export function binaryStringToUint8Array(binStr) {
+  const arr = new Uint8Array(binStr.length);
+  for (let i = 0; i < binStr.length; i++) arr[i] = binStr.charCodeAt(i);
+  return arr;
+}
+
+export function readBufferAsBinaryString(buffer) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsBinaryString(new Blob([buffer]));
+  });
+}
+
 // --- Misc ---
 export function updateNum(o, k, v) {
   if (v === '') delete o[k];

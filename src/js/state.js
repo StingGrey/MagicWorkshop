@@ -30,3 +30,15 @@ export const sdFields = [
 ];
 
 export const OBF_HISTORY_KEY = 'magic_obf_history';
+
+export const META_FIELD_IDS = [
+  'fieldTitle', 'fieldPrompt', 'fieldNegative', 'fieldSteps', 'fieldCfg',
+  'fieldSeed', 'fieldNoise', 'fieldSoftware', 'fieldSource', 'fieldComment', 'fieldNSamples'
+];
+
+export const EXIF_FIELD_IDS = [
+  'exifMake', 'exifModel', 'exifSoftware', 'exifDateTime', 'exifExposure',
+  'exifFNumber', 'exifISO', 'exifFocal', 'exifUserComment', 'exifLat', 'exifLong', 'exifAlt'
+];
+
+export const EXIF_UNICODE_HEADER = [85, 78, 73, 67, 79, 68, 69, 0];
