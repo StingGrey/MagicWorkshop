@@ -16,16 +16,18 @@ body {
 }
 
 .app-wrap {
+  width: 100%;
   max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;
   animation: popIn 0.6s var(--ease-spring); min-height: 90vh;
   position: relative; z-index: 1;
+  min-width: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    📦 LAYOUT GRID
 ═══════════════════════════════════════════════════════════════════════════ */
-.main-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
-@media(min-width: 1000px) { .main-grid { grid-template-columns: 400px 1fr; align-items: start; } }
+.main-grid { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+@media(min-width: 1000px) { .main-grid { grid-template-columns: 400px minmax(0, 1fr); align-items: start; } }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    🪟 GLASSMORPHISM CARDS
@@ -40,6 +42,7 @@ body {
   box-shadow: var(--shadow-md);
   display: flex; flex-direction: column; gap: 20px;
   transition: all 0.4s var(--ease-smooth);
+  min-width: 0;
 }
 .glass-card:hover {
   transform: translateY(-4px);
@@ -93,6 +96,7 @@ body {
 /* Module Containers — Scale + Blur transition */
 .form-container {
   display: none;
+  min-width: 0;
 }
 .form-container.active {
   display: block;

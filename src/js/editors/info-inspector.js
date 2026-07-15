@@ -266,7 +266,7 @@ export function renderInfoPanel() {
         return `
           <div class="info-prompt-block">
             <div class="info-prompt-label">${escapeHtml(item.key)}</div>
-            <div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(val)}</div>
+            <div class="info-prompt-text">${escapeHtml(val)}</div>
           </div>
         `;
       } else {
